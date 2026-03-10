@@ -1,8 +1,11 @@
 #!/bin/bash
 # =============================================================================
-# deploy.sh — Script de deploy para SecretariaSistema
+# deploy.sh — Instalação inicial do SecretariaSistema
 # Servidor: Ubuntu 22.04 LTS + NGINX + Node.js 20
 # Uso: sudo bash deploy.sh
+#
+# ⚠️  Execute este script APENAS na primeira vez (provisionamento do servidor).
+#     Para atualizar o código após alterações, use:  sudo bash update.sh
 # =============================================================================
 
 set -e
