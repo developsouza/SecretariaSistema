@@ -78,15 +78,23 @@ export default function RegistroPage() {
         register,
         handleSubmit,
         watch,
+        trigger,
         formState: { errors, isSubmitting },
     } = useForm();
 
     const onSubmit = async (data) => {
         try {
-            await authAPI.registrar(data);
+            // eslint-disable-next-line no-unused-vars
+            const { confirm_senha, ...payload } = data;
+            await authAPI.registrar(payload);
             setSucesso(true);
         } catch (err) {
-            toast.error(err.response?.data?.error || "Erro ao cadastrar. Tente novamente.");
+            const erroData = err.response?.data;
+            if (erroData?.errors?.length > 0) {
+                toast.error(erroData.errors[0].msg || "Erro de validação");
+            } else {
+                toast.error(erroData?.error || "Erro ao cadastrar. Tente novamente.");
+            }
         }
     };
 
@@ -227,7 +235,10 @@ export default function RegistroPage() {
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={() => setStep(2)}
+                                    onClick={async () => {
+                                        const valid = await trigger(["nome_igreja", "cidade", "estado"]);
+                                        if (valid) setStep(2);
+                                    }}
                                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary hover:bg-primary-700 text-white font-semibold rounded-xl transition-all shadow-glow active:scale-[0.98] mt-2"
                                 >
                                     Proximo <ArrowRight className="w-4 h-4" />
@@ -249,7 +260,13 @@ export default function RegistroPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-medium text-white/70 mb-1.5">Seu nome completo *</label>
-                                    <GlassInput placeholder="Maria Santos" {...register("nome_admin", { required: "Obrigatorio" })} />
+                                    <GlassInput
+                                        placeholder="Maria Santos"
+                                        {...register("nome_admin", {
+                                            required: "Obrigatorio",
+                                            minLength: { value: 3, message: "Minimo 3 caracteres" },
+                                        })}
+                                    />
                                     {errors.nome_admin && <p className="text-red-400 text-xs mt-1.5">{errors.nome_admin.message}</p>}
                                 </div>
                                 <div>
