@@ -99,14 +99,16 @@ systemctl restart secretariasistema
 
 # ── SSL via Let's Encrypt ─────────────────────────────────────────────────────
 echo "[9/9] Emitindo certificado SSL (Certbot)..."
-certbot certonly --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "admin@$DOMAIN" || \
-  { echo "⚠️  SSL não emitido. Verifique se o DNS do domínio aponta para este servidor."; exit 1; }
+# Para standalone o nginx precisa ser parado temporariamente (porta 80 livre)
+systemctl stop nginx
+certbot certonly --standalone -d "$DOMAIN" --non-interactive --agree-tos -m "admin@$DOMAIN" || \
+  { echo "⚠️  SSL não emitido. Verifique se o DNS do domínio aponta para este IP."; systemctl start nginx; exit 1; }
 
 # Aplica config NGINX final com SSL (certificado já existe agora)
 echo "[9/9] Aplicando configuração NGINX final (HTTPS)..."
 cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/secretariasistema
 nginx -t
-systemctl reload nginx
+systemctl start nginx
 
 # ── Status ────────────────────────────────────────────────────────────────────
 echo ""
