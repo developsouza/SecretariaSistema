@@ -1,0 +1,39 @@
+{
+    "name": "secretaria-sistema-backend",
+    "version": "1.0.0",
+    "description": "API Backend - Sistema de Gestão de Membros para Igrejas (SaaS)",
+    "main": "src/server.js",
+    "scripts": {
+        "start": "node src/server.js",
+        "dev": "nodemon src/server.js",
+        "migrate": "node src/database/migrate.js",
+        "seed": "node src/database/seed.js"
+    },
+    "dependencies": {
+        "bcryptjs": "^2.4.3",
+        "better-sqlite3": "^12.6.2",
+        "compression": "^1.7.4",
+        "cookie-parser": "^1.4.7",
+        "cors": "^2.8.5",
+        "date-fns": "^3.3.1",
+        "dotenv": "^16.4.5",
+        "express": "^4.18.2",
+        "express-rate-limit": "^7.2.0",
+        "express-validator": "^7.0.1",
+        "file-type": "^19.6.0",
+        "helmet": "^7.1.0",
+        "jsonwebtoken": "^9.0.2",
+        "morgan": "^1.10.0",
+        "multer": "^1.4.5-lts.1",
+        "node-cron": "^4.2.1",
+        "nodemailer": "^8.0.2",
+        "pdfkit": "^0.14.0",
+        "qrcode": "^1.5.3",
+        "sharp": "^0.33.2",
+        "stripe": "^14.21.0",
+        "uuid": "^9.0.1"
+    },
+    "devDependencies": {
+        "nodemon": "^3.1.0"
+    }
+}
