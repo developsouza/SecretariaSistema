@@ -59,7 +59,7 @@ passwd
 ### 2.3 — Criar usuário não-root (boa prática)
 
 ```bash
-adduser deploy
+maindeploy
 usermod -aG sudo deploy
 ```
 
@@ -70,7 +70,7 @@ usermod -aG sudo deploy
 ### 3.1 — Rodar o script de deploy
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPOSITORIO/main/deploy/deploy.sh | bash
+curl -fsSL https://raw.githubusercontent.com/developsouza/SecretariaSistema/main/deploy/deploy.sh | bash
 ```
 
 Ou, clonando primeiro:

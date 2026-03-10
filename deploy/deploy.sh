@@ -66,14 +66,29 @@ cd "$APP_DIR/frontend"
 npm ci
 npm run build
 
-# ── NGINX ─────────────────────────────────────────────────────────────────────
-echo "[7/9] Configurando NGINX..."
-cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/secretariasistema
+# ── NGINX (config HTTP provisória para o Certbot validar o domínio) ────────────
+echo "[7/9] Configurando NGINX (provisório HTTP para emitir SSL)..."
+cat > /etc/nginx/sites-available/secretariasistema <<NGINX_BOOTSTRAP
+server {
+    listen 80;
+    server_name $DOMAIN www.$DOMAIN;
+    root /var/www/secretariasistema/frontend/dist;
+    index index.html;
+    location / {
+        try_files \$uri \$uri/ /index.html;
+    }
+    location /api/ {
+        proxy_pass http://127.0.0.1:3001;
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+    }
+}
+NGINX_BOOTSTRAP
+
 ln -sf /etc/nginx/sites-available/secretariasistema /etc/nginx/sites-enabled/secretariasistema
 rm -f /etc/nginx/sites-enabled/default
-
-# Testa configuração
 nginx -t
+systemctl reload nginx
 
 # ── Systemd ───────────────────────────────────────────────────────────────────
 echo "[8/9] Configurando serviço systemd..."
@@ -83,12 +98,15 @@ systemctl enable secretariasistema
 systemctl restart secretariasistema
 
 # ── SSL via Let's Encrypt ─────────────────────────────────────────────────────
-echo "[9/9] Configurando SSL (Certbot)..."
-certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos -m admin@$DOMAIN || \
-  echo "⚠️  SSL não configurado automaticamente. Execute: certbot --nginx -d $DOMAIN"
+echo "[9/9] Emitindo certificado SSL (Certbot)..."
+certbot certonly --nginx -d "$DOMAIN" --non-interactive --agree-tos -m "admin@$DOMAIN" || \
+  { echo "⚠️  SSL não emitido. Verifique se o DNS do domínio aponta para este servidor."; exit 1; }
 
-# Reinicia NGINX
-systemctl restart nginx
+# Aplica config NGINX final com SSL (certificado já existe agora)
+echo "[9/9] Aplicando configuração NGINX final (HTTPS)..."
+cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/secretariasistema
+nginx -t
+systemctl reload nginx
 
 # ── Status ────────────────────────────────────────────────────────────────────
 echo ""
