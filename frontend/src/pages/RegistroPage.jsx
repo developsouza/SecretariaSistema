@@ -80,7 +80,9 @@ export default function RegistroPage() {
         watch,
         trigger,
         formState: { errors, isSubmitting },
-    } = useForm();
+    } = useForm({ defaultValues: { estado: "", denominacao: "" } });
+
+    const STEP1_FIELDS = ["nome_igreja", "cidade", "estado"];
 
     const onSubmit = async (data) => {
         try {
@@ -96,6 +98,11 @@ export default function RegistroPage() {
                 toast.error(erroData?.error || "Erro ao cadastrar. Tente novamente.");
             }
         }
+    };
+
+    const onError = (fieldErrors) => {
+        const hasStep1Errors = STEP1_FIELDS.some((f) => fieldErrors[f]);
+        if (hasStep1Errors) setStep(1);
     };
 
     if (sucesso)
@@ -180,7 +187,7 @@ export default function RegistroPage() {
                 </div>
 
                 <div className="bg-white/10 dark:bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
-                    <form onSubmit={handleSubmit(onSubmit)}>
+                    <form onSubmit={handleSubmit(onSubmit, onError)}>
                         {step === 1 && (
                             <div className="space-y-4">
                                 <h3 className="font-bold text-lg text-white mb-4">Dados da Igreja</h3>
