@@ -8,8 +8,8 @@
 set -e
 
 APP_DIR="/var/www/secretariasistema"
-REPO_URL="https://github.com/suaorg/secretariasistema.git"  # Ajuste para seu repositório
-DOMAIN="secretariasistema.com.br"
+REPO_URL="https://github.com/developsouza/SecretariaSistema.git"  # Ajuste para seu repositório
+DOMAIN="secretariaigreja.g3tsistemas.com.br"
 
 echo "════════════════════════════════════════════════"
 echo "  SecretariaSistema — Script de Deploy"
