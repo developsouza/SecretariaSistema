@@ -88,7 +88,7 @@ NGINX_BOOTSTRAP
 ln -sf /etc/nginx/sites-available/secretariasistema /etc/nginx/sites-enabled/secretariasistema
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
-systemctl reload nginx
+systemctl restart nginx
 
 # ── Systemd ───────────────────────────────────────────────────────────────────
 echo "[8/9] Configurando serviço systemd..."
