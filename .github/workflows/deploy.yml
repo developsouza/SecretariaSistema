@@ -24,4 +24,16 @@ jobs:
                   # Tempo máximo para o update.sh terminar (build do frontend pode demorar)
                   command_timeout: 15m
                   script: |
-                      sudo bash /var/www/gestao-secretaria/deploy/update.sh
+                      # Localiza o update.sh independente do nome do diretório no servidor
+                      SCRIPT=""
+                      for path in \
+                        /var/www/secretariasistema/deploy/update.sh \
+                        /var/www/gestao-secretaria/deploy/update.sh; do
+                        [ -f "$path" ] && SCRIPT="$path" && break
+                      done
+                      if [ -z "$SCRIPT" ]; then
+                        echo "❌ update.sh não encontrado em nenhum caminho conhecido."
+                        exit 1
+                      fi
+                      echo "▶ Executando $SCRIPT"
+                      sudo bash "$SCRIPT"
