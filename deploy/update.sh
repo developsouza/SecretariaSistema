@@ -60,10 +60,14 @@ if [ "$BACKEND_MUDOU" = true ]; then
     echo "  → package.json alterado — reinstalando dependências..."
     rm -rf node_modules
     npm ci --production
+    # Recompila módulos nativos a partir do source para garantir compatibilidade
+    echo "  → Recompilando módulos nativos..."
+    npm rebuild better-sqlite3 --build-from-source
+    npm rebuild sharp --build-from-source 2>/dev/null || true
   else
     # Mesmo sem mudança no package.json, recompila módulos nativos
     # caso o Node.js tenha sido atualizado no servidor
-    npm rebuild better-sqlite3 2>/dev/null || true
+    npm rebuild better-sqlite3 --build-from-source 2>/dev/null || true
   fi
 
   # Garante que os diretórios de dados existam (necessário para o systemd namespace)
