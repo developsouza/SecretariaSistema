@@ -61,6 +61,10 @@ if [ "$BACKEND_MUDOU" = true ]; then
     npm ci --production
   fi
 
+  # Garante que os diretórios de dados existam (necessário para o systemd namespace)
+  mkdir -p data uploads/fotos uploads/logos uploads/carteiras
+  chown -R www-data:www-data data uploads
+
   # Migrations são idempotentes: seguro sempre que o backend mudar
   npm run migrate 2>/dev/null || true
 
