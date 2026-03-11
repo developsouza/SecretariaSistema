@@ -140,7 +140,7 @@ export default function DashboardLayout() {
                     </div>
                     <div className="min-w-0 flex-1">
                         <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight truncate">
-                            {usuário?.igreja?.nome_curto || usuário?.igreja?.nome || "Gestão Secretaria"}
+                            {usuario?.igreja?.nome_curto || usuario?.igreja?.nome || "Gestão Secretaria"}
                         </p>
                         <span className={`inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded-md mt-0.5 ${statusColor}`}>
                             {statusLabel}
