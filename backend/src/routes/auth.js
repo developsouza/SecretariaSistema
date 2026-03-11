@@ -168,11 +168,11 @@ async function enviarEmailBoasVindas(destinatario, nomeIgreja) {
 router.post(
     "/registrar",
     [
-        body("nome_igreja").trim().isLength({ min: 3 }).withMessage("Nome da igreja inválido"),
-        body("cidade").trim().notEmpty(),
-        body("estado").trim().isLength({ min: 2, max: 2 }),
-        body("nome_admin").trim().isLength({ min: 3 }),
-        body("email").isEmail().normalizeEmail(),
+        body("nome_igreja").trim().isLength({ min: 3 }).withMessage("Nome da igreja deve ter ao menos 3 caracteres"),
+        body("cidade").trim().notEmpty().withMessage("Cidade é obrigatória"),
+        body("estado").trim().isLength({ min: 2, max: 2 }).withMessage("Estado inválido"),
+        body("nome_admin").trim().isLength({ min: 3 }).withMessage("Nome deve ter ao menos 3 caracteres"),
+        body("email").isEmail().withMessage("E-mail inválido").normalizeEmail(),
         body("senha").isLength({ min: 8 }).withMessage("Senha deve ter ao menos 8 caracteres"),
     ],
     async (req, res, next) => {

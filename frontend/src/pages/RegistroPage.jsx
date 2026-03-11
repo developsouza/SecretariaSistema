@@ -79,30 +79,45 @@ export default function RegistroPage() {
         handleSubmit,
         watch,
         trigger,
+        getValues,
+        reset,
         formState: { errors, isSubmitting },
-    } = useForm({ defaultValues: { estado: "", denominacao: "" } });
+    } = useForm({ shouldUnregister: true });
 
-    const STEP1_FIELDS = ["nome_igreja", "cidade", "estado"];
+    const [step1Data, setStep1Data] = useState(null);
+
+    const handleAvancar = async () => {
+        const valid = await trigger(["nome_igreja", "cidade", "estado"]);
+        if (valid) {
+            setStep1Data(getValues());
+            setStep(2);
+        }
+    };
+
+    const handleBack = () => {
+        if (step1Data) reset(step1Data);
+        setStep(1);
+    };
 
     const onSubmit = async (data) => {
         try {
             // eslint-disable-next-line no-unused-vars
-            const { confirm_senha, ...payload } = data;
+            const { confirm_senha, ...step2Data } = data;
+            const payload = { ...step1Data, ...step2Data };
             await authAPI.registrar(payload);
             setSucesso(true);
         } catch (err) {
             const erroData = err.response?.data;
             if (erroData?.errors?.length > 0) {
-                toast.error(erroData.errors[0].msg || "Erro de validação");
+                const msg = erroData.errors
+                    .map((e) => e.msg)
+                    .filter(Boolean)
+                    .join(" | ");
+                toast.error(msg || "Erro de validação");
             } else {
                 toast.error(erroData?.error || "Erro ao cadastrar. Tente novamente.");
             }
         }
-    };
-
-    const onError = (fieldErrors) => {
-        const hasStep1Errors = STEP1_FIELDS.some((f) => fieldErrors[f]);
-        if (hasStep1Errors) setStep(1);
     };
 
     if (sucesso)
@@ -187,7 +202,7 @@ export default function RegistroPage() {
                 </div>
 
                 <div className="bg-white/10 dark:bg-white/5 backdrop-blur-xl rounded-3xl border border-white/20 p-8 shadow-2xl">
-                    <form onSubmit={handleSubmit(onSubmit, onError)}>
+                    <form onSubmit={handleSubmit(onSubmit)}>
                         {step === 1 && (
                             <div className="space-y-4">
                                 <h3 className="font-bold text-lg text-white mb-4">Dados da Igreja</h3>
@@ -242,10 +257,7 @@ export default function RegistroPage() {
                                 </div>
                                 <button
                                     type="button"
-                                    onClick={async () => {
-                                        const valid = await trigger(["nome_igreja", "cidade", "estado"]);
-                                        if (valid) setStep(2);
-                                    }}
+                                    onClick={handleAvancar}
                                     className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary hover:bg-primary-700 text-white font-semibold rounded-xl transition-all shadow-glow active:scale-[0.98] mt-2"
                                 >
                                     Proximo <ArrowRight className="w-4 h-4" />
@@ -258,7 +270,7 @@ export default function RegistroPage() {
                                 <div className="flex items-center gap-3 mb-4">
                                     <button
                                         type="button"
-                                        onClick={() => setStep(1)}
+                                        onClick={handleBack}
                                         className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white/60 hover:text-white transition-all"
                                     >
                                         <ArrowLeft className="w-4 h-4" />
