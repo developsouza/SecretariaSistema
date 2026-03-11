@@ -38,7 +38,7 @@ const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
 const storage = multer.diskStorage({
     destination(req, file, cb) {
-        const subdir = file.fieldname === "logo" || file.fieldname === "assinatura" ? "logos" : "fotos";
+        const subdir = file.fieldname === "logo" || file.fieldname === "assinatura" || file.fieldname === "marca_dagua" ? "logos" : "fotos";
         const dest = path.join(UPLOAD_DIR, subdir);
         if (!fs.existsSync(dest)) fs.mkdirSync(dest, { recursive: true });
         cb(null, dest);
