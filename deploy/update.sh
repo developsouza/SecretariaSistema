@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# update.sh — Re-deploy incremental do SecretariaSistema
+# update.sh — Re-deploy incremental do Gestão Secretaria
 # Uso: sudo bash update.sh
 # Rodar após fazer push de alterações no repositório.
 # Só executa as etapas afetadas pelas mudanças de código...
@@ -8,10 +8,10 @@
 
 set -e
 
-APP_DIR="/var/www/secretariasistema"
+APP_DIR="/var/www/gestao-secretaria"
 
 echo "════════════════════════════════════════════════"
-echo "  SecretariaSistema — Atualização de Código"
+echo "  Gestão Secretaria — Atualização de Código"
 echo "════════════════════════════════════════════════"
 
 cd "$APP_DIR"
@@ -81,15 +81,15 @@ if [ "$BACKEND_MUDOU" = true ]; then
   npm run migrate 2>/dev/null || true
 
   echo "  → Reiniciando serviço..."
-  systemctl restart secretariasistema
+  systemctl restart gestao-secretaria
 
   # Aguarda o serviço subir e confirma status
   sleep 2
-  if systemctl is-active --quiet secretariasistema; then
+  if systemctl is-active --quiet gestao-secretaria; then
     echo "  ✅ Backend atualizado e serviço rodando."
   else
     echo "  ❌ Serviço falhou ao iniciar. Verifique os logs:"
-    journalctl -u secretariasistema -n 30 --no-pager
+    journalctl -u gestao-secretaria -n 30 --no-pager
     exit 1
   fi
 else
@@ -119,7 +119,7 @@ if [ "$FRONTEND_MUDOU" = true ] || [ "$NGINX_MUDOU" = true ]; then
   # Se a config do nginx mudou, copia o arquivo atualizado antes do reload
   if [ "$NGINX_MUDOU" = true ]; then
     echo "  → Aplicando nova configuração nginx..."
-    cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/secretariasistema
+    cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/gestao-secretaria
   fi
 
   nginx -t && systemctl reload nginx
@@ -133,5 +133,5 @@ echo "════════════════════════�
 echo "  ✅ Atualização concluída!"
 echo "════════════════════════════════════════════════"
 echo "  Versão implantada: $(git -C "$APP_DIR" rev-parse --short HEAD)"
-echo "  Logs em tempo real: journalctl -u secretariasistema -f"
+echo "  Logs em tempo real: journalctl -u gestao-secretaria -f"
 echo ""

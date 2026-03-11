@@ -55,7 +55,7 @@ export default function VerificarEmailPage() {
                             <Church className="w-7 h-7 text-white" />
                         </div>
                     </Link>
-                    <h1 className="text-2xl font-bold text-white tracking-tight">SecretariaSistema</h1>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">Gestão Secretaria</h1>
                     <p className="text-white/60 text-sm mt-1">Verificação de e-mail</p>
                 </div>
 

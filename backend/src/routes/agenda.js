@@ -93,15 +93,15 @@ router.get("/exportar-ics", (req, res, next) => {
         const linhas = [
             "BEGIN:VCALENDAR",
             "VERSION:2.0",
-            "PRODID:-//SecretariaSistema//Agenda//PT",
+            "PRODID:-//Gestão Secretaria//Agenda//PT",
             "CALSCALE:GREGORIAN",
             "METHOD:PUBLISH",
-            "X-WR-CALNAME:Agenda - SecretariaSistema",
+            "X-WR-CALNAME:Agenda - Gestão Secretaria",
             "X-WR-TIMEZONE:America/Sao_Paulo",
         ];
 
         for (const ev of eventos) {
-            const uid = `${ev.id}@secretariasistema`;
+            const uid = `${ev.id}@gestaosecretaria`;
 
             let dtstart, dtend;
             if (ev.dia_todo) {

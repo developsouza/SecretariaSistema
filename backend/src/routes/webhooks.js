@@ -93,7 +93,7 @@ router.post("/stripe", async (req, res) => {
                         });
                         const plansUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/dashboard/planos`;
                         await transporter.sendMail({
-                            from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+                            from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
                             to: process.env.NOTIFY_EMAIL || igrejaInfo.email,
                             subject: `Assinatura cancelada — ${igrejaInfo.nome}`,
                             html: `
@@ -117,7 +117,7 @@ router.post("/stripe", async (req, res) => {
                                 </div>
                                 <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
                                 <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">
-                                  SecretariaSistema · Plataforma de gestão de membros
+                                  Gestão Secretaria · Plataforma de gestão de membros
                                 </p>
                               </div>
                             </div>`,

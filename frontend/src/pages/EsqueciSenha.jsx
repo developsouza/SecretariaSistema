@@ -48,7 +48,7 @@ export default function EsqueciSenhaPage() {
                     <div className="inline-flex w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 items-center justify-center mb-4 shadow-glow">
                         <Church className="w-8 h-8 text-white" />
                     </div>
-                    <h1 className="text-2xl font-bold text-white tracking-tight">SecretariaSistema</h1>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">Gestão Secretaria</h1>
                     <p className="text-white/60 text-sm mt-1">Plataforma de gestão de membros</p>
                 </div>
 

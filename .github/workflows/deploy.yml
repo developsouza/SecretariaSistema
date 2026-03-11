@@ -24,4 +24,4 @@ jobs:
                   # Tempo máximo para o update.sh terminar (build do frontend pode demorar)
                   command_timeout: 15m
                   script: |
-                      sudo bash /var/www/secretariasistema/deploy/update.sh
+                      sudo bash /var/www/gestao-secretaria/deploy/update.sh

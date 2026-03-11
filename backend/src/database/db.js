@@ -470,7 +470,7 @@ function initSchema() {
     // Seed superadmin padrão se ainda não existir nenhum
     const totalSuperadmins = db.prepare("SELECT COUNT(*) AS n FROM superadmins").get().n;
     if (totalSuperadmins === 0) {
-        const email = process.env.SUPERADMIN_EMAIL || "master@secretariasistema.com.br";
+        const email = process.env.SUPERADMIN_EMAIL || "master@gestaosecretaria.com.br";
         const senha = process.env.SUPERADMIN_SENHA || "Master@2025!";
         const hash = bcrypt.hashSync(senha, 12);
         db.prepare("INSERT INTO superadmins (id, nome, email, senha_hash) VALUES (?, ?, ?, ?)").run(uuidv4(), "Master Admin", email, hash);

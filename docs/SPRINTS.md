@@ -1,4 +1,4 @@
-# SecretariaSistema — Sprints de Adequação SaaS B2C
+# Gestão Secretaria — Sprints de Adequação SaaS B2C
 
 > Documento de rastreamento do desenvolvimento crítico.
 > Cada sprint detalha o que foi feito, como testar e o que falta para considerar completo.

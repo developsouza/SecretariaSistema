@@ -140,7 +140,7 @@ export default function DashboardLayout() {
                     </div>
                     <div className="min-w-0 flex-1">
                         <p className="font-bold text-gray-900 dark:text-white text-sm leading-tight truncate">
-                            {usuario?.igreja?.nome_curto || usuario?.igreja?.nome || "SecretariaSistema"}
+                            {usuário?.igreja?.nome_curto || usuário?.igreja?.nome || "Gestão Secretaria"}
                         </p>
                         <span className={`inline-flex items-center text-xs font-medium px-1.5 py-0.5 rounded-md mt-0.5 ${statusColor}`}>
                             {statusLabel}
@@ -221,7 +221,7 @@ export default function DashboardLayout() {
                         )}
                     </div>
                     <span className="font-bold text-gray-900 dark:text-white text-sm flex-1 truncate">
-                        {usuario?.igreja?.nome_curto || usuario?.igreja?.nome || "SecretariaSistema"}
+                        {usuario?.igreja?.nome_curto || usuario?.igreja?.nome || "Gestão Secretaria"}
                     </span>
                     <button onClick={toggleTheme} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                         {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-400" />}
@@ -290,7 +290,7 @@ export default function DashboardLayout() {
                                         : `Seu trial expira em ${trialDaysLeft} dia${trialDaysLeft !== 1 ? "s" : ""}!`}
                                 </p>
                                 <p className="text-amber-600 dark:text-amber-300 mt-0.5">
-                                    Escolha um plano para continuar usando o SecretariaSistema sem interrupções.
+                                    Escolha um plano para continuar usando o Gestão Secretaria sem interrupções.
                                 </p>
                             </div>
                             <NavLink

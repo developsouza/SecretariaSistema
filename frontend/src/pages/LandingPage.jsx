@@ -125,7 +125,7 @@ export default function LandingPage() {
                         <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary-700 rounded-xl flex items-center justify-center shadow-glow-sm">
                             <Church className="w-5 h-5 text-white" />
                         </div>
-                        <span className="font-bold text-gray-900 dark:text-white text-lg tracking-tight">SecretariaSistema</span>
+                        <span className="font-bold text-gray-900 dark:text-white text-lg tracking-tight">Gestão Secretaria</span>
                     </div>
                     <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600 dark:text-gray-400">
                         <a href="#funcionalidades" className="hover:text-primary dark:hover:text-primary-300 transition-colors">
@@ -289,7 +289,7 @@ export default function LandingPage() {
                 </div>
                 <div className="relative z-10 max-w-2xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">Pronto para organizar sua secretaria?</h2>
-                    <p className="text-white/60 mb-8 text-lg">Junte-se a mais de 500 igrejas que já confiam no Secretaria Igreja.</p>
+                    <p className="text-white/60 mb-8 text-lg">Junte-se a mais de 500 igrejas que já confiam no Gestão Secretaria.</p>
                     <Link
                         to="/registro"
                         className="group inline-flex items-center gap-2 px-10 py-4 bg-white text-gray-900 font-bold rounded-2xl hover:bg-gray-100 transition-all duration-200 shadow-2xl active:scale-[0.98] text-base"
@@ -307,7 +307,7 @@ export default function LandingPage() {
                             <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-700 rounded-xl flex items-center justify-center">
                                 <Church className="w-4 h-4 text-white" />
                             </div>
-                            <span className="font-bold text-white">Secretaria Igreja</span>
+                            <span className="font-bold text-white">Gestão Secretaria</span>
                         </div>
                         <p className="text-sm leading-relaxed text-gray-500">
                             O sistema de gestão de membros feito para igrejas evangélicas brasileiras.
@@ -348,7 +348,7 @@ export default function LandingPage() {
                     </div>
                 </div>
                 <div className="max-w-6xl mx-auto mt-10 pt-8 border-t border-gray-800 text-center text-sm text-gray-600">
-                    &copy; {new Date().getFullYear()} Secretaria Igreja. Todos os direitos reservados | G3T Sistemas.
+                    &copy; {new Date().getFullYear()} Gestão Secretaria. Todos os direitos reservados | G3T Sistemas.
                 </div>
             </footer>
         </div>

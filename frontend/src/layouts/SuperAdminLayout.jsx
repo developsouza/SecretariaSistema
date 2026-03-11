@@ -53,7 +53,7 @@ export default function SuperAdminLayout() {
                         </div>
                         <div>
                             <p className="text-white font-bold text-sm tracking-tight leading-tight">Painel Master</p>
-                            <p className="text-gray-500 text-[10px]">SecretariaSistema</p>
+                            <p className="text-gray-500 text-[10px]">Gestão Secretaria</p>
                         </div>
                     </div>
                 </div>

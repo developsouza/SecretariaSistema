@@ -77,7 +77,7 @@ export default function LoginPage() {
                     <div className="w-10 h-10 bg-white/15 backdrop-blur-sm border border-white/20 rounded-2xl flex items-center justify-center shadow-glow-sm">
                         <Church className="w-5 h-5 text-white" />
                     </div>
-                    <span className="font-bold text-white text-lg tracking-tight">SecretariaSistema</span>
+                    <span className="font-bold text-white text-lg tracking-tight">Gestão Secretaria</span>
                 </div>
 
                 {/* Texto central */}
@@ -139,7 +139,7 @@ export default function LoginPage() {
                         <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-700 rounded-xl flex items-center justify-center shadow-glow-sm">
                             <Church className="w-4 h-4 text-white" />
                         </div>
-                        <span className="font-bold text-gray-900 dark:text-white text-sm tracking-tight">SecretariaSistema</span>
+                        <span className="font-bold text-gray-900 dark:text-white text-sm tracking-tight">Gestão Secretaria</span>
                     </div>
                     <div className="hidden lg:block" />
 
@@ -264,7 +264,7 @@ export default function LoginPage() {
 
                 {/* Rodapé */}
                 <p className="text-center text-xs text-gray-400 dark:text-gray-600 pb-4 relative z-10">
-                    &copy; {new Date().getFullYear()} SecretariaSistema · Todos os direitos reservados
+                    &copy; {new Date().getFullYear()} Gestão Secretaria · Todos os direitos reservados
                 </p>
             </div>
         </div>

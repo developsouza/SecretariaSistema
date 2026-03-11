@@ -1,6 +1,6 @@
 #!/bin/bash
 # =============================================================================
-# deploy.sh — Instalação inicial do SecretariaSistema
+# deploy.sh — Instalação inicial do Gestão Secretaria
 # Servidor: Ubuntu 22.04 LTS + NGINX + Node.js 20
 # Uso: sudo bash deploy.sh
 #
@@ -10,12 +10,12 @@
 
 set -e
 
-APP_DIR="/var/www/secretariasistema"
+APP_DIR="/var/www/gestao-secretaria"
 REPO_URL="https://github.com/developsouza/SecretariaSistema.git"  # Ajuste para seu repositório
 DOMAIN="secretariaigreja.g3tsistemas.com.br"
 
 echo "════════════════════════════════════════════════"
-echo "  SecretariaSistema — Script de Deploy"
+echo "  Gestão Secretaria — Script de Deploy"
 echo "════════════════════════════════════════════════"
 
 # ── Atualiza sistema ──────────────────────────────────────────────────────────
@@ -71,11 +71,11 @@ npm run build
 
 # ── NGINX (config HTTP provisória para o Certbot validar o domínio) ────────────
 echo "[7/9] Configurando NGINX (provisório HTTP para emitir SSL)..."
-cat > /etc/nginx/sites-available/secretariasistema <<NGINX_BOOTSTRAP
+cat > /etc/nginx/sites-available/gestao-secretaria <<NGINX_BOOTSTRAP
 server {
     listen 80;
     server_name $DOMAIN www.$DOMAIN;
-    root /var/www/secretariasistema/frontend/dist;
+    root /var/www/gestao-secretaria/frontend/dist;
     index index.html;
     location / {
         try_files \$uri \$uri/ /index.html;
@@ -88,17 +88,17 @@ server {
 }
 NGINX_BOOTSTRAP
 
-ln -sf /etc/nginx/sites-available/secretariasistema /etc/nginx/sites-enabled/secretariasistema
+ln -sf /etc/nginx/sites-available/gestao-secretaria /etc/nginx/sites-enabled/gestao-secretaria
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
 systemctl restart nginx
 
 # ── Systemd ───────────────────────────────────────────────────────────────────
 echo "[8/9] Configurando serviço systemd..."
-cp "$APP_DIR/deploy/systemd/secretariasistema.service" /etc/systemd/system/
+cp "$APP_DIR/deploy/systemd/secretariasistema.service" /etc/systemd/system/gestao-secretaria.service
 systemctl daemon-reload
-systemctl enable secretariasistema
-systemctl restart secretariasistema
+systemctl enable gestao-secretaria
+systemctl restart gestao-secretaria
 
 # ── SSL via Let's Encrypt ─────────────────────────────────────────────────────
 echo "[9/9] Emitindo certificado SSL (Certbot)..."
@@ -109,7 +109,7 @@ certbot certonly --standalone -d "$DOMAIN" --non-interactive --agree-tos -m "adm
 
 # Aplica config NGINX final com SSL (certificado já existe agora)
 echo "[9/9] Aplicando configuração NGINX final (HTTPS)..."
-cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/secretariasistema
+cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/gestao-secretaria
 nginx -t
 systemctl start nginx
 
@@ -122,7 +122,7 @@ echo "  API:      https://$DOMAIN/api/health"
 echo "  Sistema:  https://$DOMAIN"
 echo ""
 echo "  Status do serviço:"
-systemctl status secretariasistema --no-pager -l
+systemctl status gestao-secretaria --no-pager -l
 echo ""
 echo "  Logs em tempo real:"
-echo "  journalctl -u secretariasistema -f"
+echo "  journalctl -u gestao-secretaria -f"

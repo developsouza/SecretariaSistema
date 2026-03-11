@@ -1,4 +1,4 @@
-# Deploy — SecretariaSistema na HostGator VPS (Ubuntu 22.04)
+# Deploy — Gestão Secretaria na HostGator VPS (Ubuntu 22.04)
 
 > Guia passo a passo para primeiro deploy e redeploys futuros.
 
@@ -26,7 +26,7 @@ DOMAIN="seudominio.com.br"
 
 ### 1.2 — Ajustar o nginx
 
-Abra o arquivo `deploy/nginx/secretariasistema.conf` e substitua todas as ocorrências de `secretariasistema.com.br` pelo seu domínio real.
+Abra o arquivo `deploy/nginx/secretariasistema.conf` e substitua todas as ocorrências de `gestaosecretaria.com.br` pelo seu domínio real.
 
 ### 1.3 — Fazer push para o GitHub
 
@@ -85,7 +85,7 @@ O script executa automaticamente:
 1. Atualiza o sistema (`apt update && apt upgrade`)
 2. Instala nginx, git, build-essential, certbot
 3. Instala Node.js 20
-4. Clona o repositório em `/var/www/secretariasistema`
+4. Clona o repositório em `/var/www/gestao-secretaria`
 5. Instala dependências do backend (`npm ci --production`)
 6. Builda o frontend React (`npm run build`)
 7. Configura o nginx como proxy reverso
@@ -101,7 +101,7 @@ O script executa automaticamente:
 ### 4.1 — Editar o arquivo
 
 ```bash
-nano /var/www/secretariasistema/backend/.env
+nano /var/www/gestao-secretaria/backend/.env
 ```
 
 ### 4.2 — Preencher todas as variáveis
@@ -142,8 +142,7 @@ SMTP_PASS=SUA_APP_PASSWORD_GMAIL
 SMTP_FROM=noreply@seudominio.com.br
 
 # ── App ───────────────────────────────────────────────────────
-APP_NAME=SecretariaSistema
-APP_URL=https://seudominio.com.br
+APP_NAME=Gestão Secretaria
 ```
 
 Salvar no `nano`: `Ctrl+O` → `Enter` → `Ctrl+X`
@@ -175,14 +174,14 @@ Execute apenas uma vez ao criar o servidor:
 
 ```bash
 # Criar diretórios de dados
-mkdir -p /var/www/secretariasistema/backend/data/backups
+mkdir -p /var/www/gestao-secretaria/backend/data/backups
 
 # Definir permissões
-chown -R www-data:www-data /var/www/secretariasistema/backend/data
-chown -R www-data:www-data /var/www/secretariasistema/backend/uploads
+chown -R www-data:www-data /var/www/gestao-secretaria/backend/data
+chown -R www-data:www-data /var/www/gestao-secretaria/backend/uploads
 
 # Popular banco com dados iniciais (planos, superadmin, etc.)
-cd /var/www/secretariasistema/backend
+cd /var/www/gestao-secretaria/backend
 sudo -u www-data node src/database/seed.js
 ```
 
@@ -193,8 +192,8 @@ sudo -u www-data node src/database/seed.js
 ### 6.1 — Reiniciar o serviço
 
 ```bash
-systemctl restart secretariasistema
-systemctl status secretariasistema
+systemctl restart gestao-secretaria
+systemctl status gestao-secretaria
 ```
 
 A saída deve mostrar `Active: active (running)`.
@@ -210,7 +209,7 @@ Deve retornar `{"status":"ok"}` ou similar.
 ### 6.3 — Ver logs em tempo real
 
 ```bash
-journalctl -u secretariasistema -f
+journalctl -u gestao-secretaria -f
 ```
 
 Para sair: `Ctrl+C`
@@ -236,7 +235,7 @@ No painel do Stripe (https://dashboard.stripe.com):
     - `customer.subscription.deleted`
     - `invoice.payment_failed`
 4. Copie o **Signing secret** (`whsec_...`) e cole no `.env` como `STRIPE_WEBHOOK_SECRET`
-5. Reinicie o serviço: `systemctl restart secretariasistema`
+5. Reinicie o serviço: `systemctl restart gestao-secretaria`
 
 ---
 
@@ -246,7 +245,7 @@ Sempre que fizer alterações no código e quiser atualizar o servidor:
 
 ```bash
 ssh root@IP_DA_SUA_VPS
-bash /var/www/secretariasistema/deploy/deploy.sh
+bash /var/www/gestao-secretaria/deploy/deploy.sh
 ```
 
 O script fará `git pull`, reinstalará dependências, rebuild do frontend e reiniciará o serviço automaticamente.
@@ -257,13 +256,13 @@ O script fará `git pull`, reinstalará dependências, rebuild do frontend e rei
 
 ```bash
 # Ver status do backend
-systemctl status secretariasistema
+systemctl status gestao-secretaria
 
 # Reiniciar backend
-systemctl restart secretariasistema
+systemctl restart gestao-secretaria
 
 # Ver logs do backend
-journalctl -u secretariasistema -f
+journalctl -u gestao-secretaria -f
 
 # Ver logs do nginx
 tail -f /var/log/nginx/error.log
@@ -293,22 +292,22 @@ ps aux | grep node
 
 ```bash
 # Ver erro detalhado
-journalctl -u secretariasistema -n 50 --no-pager
+journalctl -u gestao-secretaria -n 50 --no-pager
 ```
 
 Causas comuns:
 
 - `.env` com variável faltando ou errada
 - Porta 3001 já em uso: `lsof -i :3001`
-- Permissão negada na pasta `/data`: `chown -R www-data:www-data /var/www/secretariasistema/backend/data`
+- Permissão negada na pasta `/data`: `chown -R www-data:www-data /var/www/gestao-secretaria/backend/data`
 
 ### Erro 502 Bad Gateway no nginx
 
 O nginx está no ar mas o Node.js não. Verifique:
 
 ```bash
-systemctl status secretariasistema
-journalctl -u secretariasistema -n 20 --no-pager
+systemctl status gestao-secretaria
+journalctl -u gestao-secretaria -n 20 --no-pager
 ```
 
 ### SSL não emitido
@@ -325,14 +324,14 @@ certbot --nginx -d seudominio.com.br -d www.seudominio.com.br
 
 ```bash
 # Verificar integridade
-cd /var/www/secretariasistema/backend
+cd /var/www/gestao-secretaria/backend
 node -e "const db = require('better-sqlite3')('./data/secretaria.db'); console.log(db.pragma('integrity_check'));"
 
 # Restaurar backup mais recente
-ls -lh /var/www/secretariasistema/backend/data/backups/
-cp /var/www/secretariasistema/backend/data/backups/secretaria-YYYY-MM-DD.db \
-   /var/www/secretariasistema/backend/data/secretaria.db
-systemctl restart secretariasistema
+ls -lh /var/www/gestao-secretaria/backend/data/backups/
+cp /var/www/gestao-secretaria/backend/data/backups/secretaria-YYYY-MM-DD.db \
+   /var/www/gestao-secretaria/backend/data/secretaria.db
+systemctl restart gestao-secretaria
 ```
 
 ---

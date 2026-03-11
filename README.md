@@ -1,4 +1,4 @@
-# ⛪ SecretariaSistema
+# ⛪ Gestão Secretaria
 
 > **SaaS completo de gestão de membros para igrejas evangélicas** — Cadastro, carteiras digitais PDF, relatórios, multi-tenant, pagamento via Stripe.
 
@@ -7,7 +7,7 @@
 ## 🏗️ Arquitetura
 
 ```
-SecretariaSistema/
+Gestão Secretaria/
 ├── backend/          ← Node.js + Express + SQLite
 ├── frontend/         ← React + Vite + Tailwind CSS
 └── deploy/           ← NGINX + Systemd + Script de deploy
@@ -125,13 +125,13 @@ npm run dev      # Inicia em http://localhost:3000
 
 ```bash
 # 1. Clone o repositório no servidor
-git clone https://github.com/suaorg/secretariasistema /var/www/secretariasistema
+git clone https://github.com/suaorg/gestao-secretaria /var/www/gestao-secretaria
 
 # 2. Configure o .env do backend
-nano /var/www/secretariasistema/backend/.env
+nano /var/www/gestao-secretaria/backend/.env
 
 # 3. Execute o script de deploy
-sudo bash /var/www/secretariasistema/deploy/deploy.sh
+sudo bash /var/www/gestao-secretaria/deploy/deploy.sh
 ```
 
 ### Configuração do .env (obrigatória em produção)
@@ -144,7 +144,7 @@ JWT_SECRET=<string-aleatoria-longa-e-segura>
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 
-FRONTEND_URL=https://secretariasistema.com.br
+FRONTEND_URL=https://gestaosecretaria.com.br
 ```
 
 ### Configurar Stripe Webhook
@@ -237,4 +237,4 @@ Eventos necessários:
 
 ## 📄 Licença
 
-MIT © SecretariaSistema
+MIT © Gestão Secretaria

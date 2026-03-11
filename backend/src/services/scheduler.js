@@ -175,7 +175,7 @@ async function executarJobAniversariantes() {
                 // 1) E-mail de gestão ao administrador
                 const destino = process.env.NOTIFY_EMAIL || igreja.admin_email;
                 await transporter.sendMail({
-                    from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+                    from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
                     to: destino,
                     subject: `[${igreja.nome}] ${titulo}`,
                     html: `
@@ -189,7 +189,7 @@ async function executarJobAniversariantes() {
                         <p style="color:#374151;">Os seguintes membros de <strong>${igreja.nome}</strong> fazem aniversário hoje:</p>
                         ${formatarListaEmail(hoje)}
                         <p style="margin-top:16px;color:#6b7280;font-size:12px;">
-                          Este e-mail foi enviado automaticamente pelo SecretariaSistema às 06:00 (Brasília).
+                          Este e-mail foi enviado automaticamente pelo Gestão Secretaria às 06:00 (Brasília).
                         </p>
                       </div>
                     </div>`,
@@ -275,7 +275,7 @@ function gerarHtmlAniversariantesList(lista, titulo, subtitulo, nomeIgreja, admi
           <tbody>${linhasHtml}</tbody>
         </table>
         <p style="margin-top:20px;color:#9ca3af;font-size:12px;text-align:center;">
-          Enviado automaticamente pelo SecretariaSistema. © ${nomeIgreja}
+          Enviado automaticamente pelo Gestão Secretaria. © ${nomeIgreja}
         </p>
       </div>
     </div>`;
@@ -338,7 +338,7 @@ async function executarJobAniversariantesDoisDias() {
             const titulo = `🎂 Aniversariantes em 2 dias — ${dataFormatada}`;
             const destAdmin = process.env.NOTIFY_EMAIL || igreja.admin_email;
             await transporter.sendMail({
-                from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+                from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
                 to: destAdmin,
                 subject: `[${igreja.nome}] ${titulo}`,
                 html: gerarHtmlAniversariantesList(membros, titulo, `Aniversário em ${dataFormatada}`, igreja.nome, igreja.admin_nome),
@@ -423,7 +423,7 @@ async function executarJobAniversariantesSemana() {
 
             const destAdmin = process.env.NOTIFY_EMAIL || igreja.admin_email;
             await transporter.sendMail({
-                from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+                from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
                 to: destAdmin,
                 subject: `[${igreja.nome}] ${titulo}`,
                 html: gerarHtmlAniversariantesList(membros, titulo, periodoLabel, igreja.nome, igreja.admin_nome),
@@ -458,7 +458,7 @@ function gerarHtmlTrial({ nomeIgreja, diasRestantes, plansUrl, tipo }) {
       <div style="background:${corHeader};padding:28px 24px;border-radius:12px 12px 0 0;text-align:center;">
         <p style="font-size:40px;margin:0;">${emoji}</p>
         <h1 style="color:#fff;margin:8px 0 4px;font-size:22px;">${titulo}</h1>
-        <p style="color:rgba(255,255,255,0.7);margin:0;font-size:13px;">SecretariaSistema · ${nomeIgreja}</p>
+        <p style="color:rgba(255,255,255,0.7);margin:0;font-size:13px;">Gestão Secretaria · ${nomeIgreja}</p>
       </div>
       <div style="padding:28px 24px;background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
         <p style="color:#374151;font-size:15px;line-height:1.7;">${corpo}</p>
@@ -486,7 +486,7 @@ function gerarHtmlTrial({ nomeIgreja, diasRestantes, plansUrl, tipo }) {
         </div>
         <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
         <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">
-          SecretariaSistema · Plataforma de gestão de membros<br/>
+          Gestão Secretaria · Plataforma de gestão de membros<br/>
           Dúvidas? Responda este e-mail.
         </p>
       </div>
@@ -550,7 +550,7 @@ async function executarJobTrialExpirando() {
             const conteudos = {
                 trial_aviso_7d: {
                     titulo: "⏳ Seu trial expira em 7 dias",
-                    mensagem: "Escolha um plano para continuar usando o SecretariaSistema sem interrupções.",
+                    mensagem: "Escolha um plano para continuar usando o Gestão Secretaria sem interrupções.",
                     emailSubject: `[${igreja.nome}] Seu trial expira em 7 dias`,
                     tipoCss: "aviso",
                 },
@@ -589,7 +589,7 @@ async function executarJobTrialExpirando() {
                 const tipo = tipoNotif === "trial_expirado" ? "expirado" : diasRestantes <= 1 ? "urgente" : "aviso";
                 try {
                     await transporter.sendMail({
-                        from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+                        from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
                         to: process.env.NOTIFY_EMAIL || igreja.admin_email,
                         subject: c.emailSubject,
                         html: gerarHtmlTrial({ nomeIgreja: igreja.nome, diasRestantes, plansUrl, tipo }),
@@ -647,7 +647,7 @@ function gerarHtmlAgendaPastoral(eventos, titulo, nomeIgreja, adminNome) {
           <tbody>${linhasHtml}</tbody>
         </table>
         <p style="margin-top:20px;color:#9ca3af;font-size:12px;text-align:center;">
-          Enviado automaticamente pelo SecretariaSistema. © ${nomeIgreja}
+          Enviado automaticamente pelo Gestão Secretaria. © ${nomeIgreja}
         </p>
       </div>
     </div>`;
@@ -711,7 +711,7 @@ async function executarJobAgendaPastoralDiaAnterior() {
             // E-mail para admin
             const destAdmin = process.env.NOTIFY_EMAIL || igreja.admin_email;
             await transporter.sendMail({
-                from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+                from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
                 to: destAdmin,
                 subject: `[${igreja.nome}] ${titulo}`,
                 html: gerarHtmlAgendaPastoral(eventos, titulo, igreja.nome, igreja.admin_nome),
@@ -813,7 +813,7 @@ async function executarJobAgendaPastoralSemanal() {
             // E-mail para admin
             const destAdmin = process.env.NOTIFY_EMAIL || igreja.admin_email;
             await transporter.sendMail({
-                from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+                from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
                 to: destAdmin,
                 subject: `[${igreja.nome}] ${titulo}`,
                 html: gerarHtmlAgendaPastoral(eventos, titulo, igreja.nome, igreja.admin_nome),

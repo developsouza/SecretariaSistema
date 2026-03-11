@@ -94,7 +94,7 @@ iniciarScheduler();
 // ─── Inicialização ─────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`\n🚀 SecretariaSistema API rodando na porta ${PORT}`);
+    console.log(`\n🚀 Gestão Secretaria API rodando na porta ${PORT}`);
     console.log(`   Ambiente: ${process.env.NODE_ENV || "development"}`);
     console.log(`   Health:   http://localhost:${PORT}/health\n`);
 });

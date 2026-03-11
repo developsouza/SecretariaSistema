@@ -296,7 +296,7 @@ function gerarPDF(lista, titulo, subtitulo, nomeIgreja, logoUrl) {
   </div>
 
   <div class="footer">
-    <span class="footer-text">Secretaria Sistema</span>
+    <span class="footer-text">Gestão Secretaria</span>
     <span class="footer-verse">"Que o Senhor te abençoe" — Nm 6:24</span>
     <span class="footer-text">${nomeIgreja}</span>
   </div>

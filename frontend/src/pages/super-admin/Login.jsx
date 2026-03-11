@@ -48,7 +48,7 @@ export default function SuperAdminLogin() {
                             <input
                                 type="email"
                                 autoComplete="username"
-                                placeholder="master@secretariasistema.com.br"
+                                placeholder="master@gestaosecretaria.com.br"
                                 className="w-full h-11 px-4 bg-gray-900/70 border border-gray-600/60 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/60 focus:border-violet-500 transition"
                                 {...register("email", { required: "E-mail obrigatório" })}
                             />
@@ -94,7 +94,7 @@ export default function SuperAdminLogin() {
                     </form>
                 </div>
 
-                <p className="text-center text-gray-600 text-xs mt-6">SecretariaSistema · Acesso interno restrito</p>
+                <p className="text-center text-gray-600 text-xs mt-6">Gestão Secretaria · Acesso interno restrito</p>
             </div>
         </div>
     );

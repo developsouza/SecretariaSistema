@@ -31,15 +31,15 @@ async function enviarEmailReset(destinatario, nomeIgreja, resetUrl) {
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
     await transporter.sendMail({
-        from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+        from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
         to: destinatario,
-        subject: "Redefinição de senha — SecretariaSistema",
+        subject: "Redefinição de senha — Gestão Secretaria",
         html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
           <div style="background:linear-gradient(135deg,#1a56db,#6366f1);padding:28px 24px;border-radius:12px 12px 0 0;text-align:center;">
             <p style="font-size:36px;margin:0;">🔐</p>
             <h1 style="color:#fff;margin:8px 0 4px;font-size:22px;">Redefinição de Senha</h1>
-            <p style="color:#c7d2fe;margin:0;font-size:13px;">SecretariaSistema${nomeIgreja ? ` — ${nomeIgreja}` : ""}</p>
+            <p style="color:#c7d2fe;margin:0;font-size:13px;">Gestão Secretaria${nomeIgreja ? ` — ${nomeIgreja}` : ""}</p>
           </div>
           <div style="padding:28px 24px;background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
             <p style="color:#374151;font-size:15px;line-height:1.6;">
@@ -59,7 +59,7 @@ async function enviarEmailReset(destinatario, nomeIgreja, resetUrl) {
             </p>
             <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
             <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">
-              SecretariaSistema · Plataforma de gestão de membros
+              Gestão Secretaria · Plataforma de gestão de membros
             </p>
           </div>
         </div>`,
@@ -79,15 +79,15 @@ async function enviarEmailVerificacao(destinatario, nomeIgreja, verifyUrl) {
         auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
     });
     await transporter.sendMail({
-        from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+        from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
         to: destinatario,
-        subject: "Confirme seu e-mail — SecretariaSistema",
+        subject: "Confirme seu e-mail — Gestão Secretaria",
         html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
           <div style="background:linear-gradient(135deg,#1a56db,#6366f1);padding:28px 24px;border-radius:12px 12px 0 0;text-align:center;">
             <p style="font-size:36px;margin:0;">✉️</p>
             <h1 style="color:#fff;margin:8px 0 4px;font-size:22px;">Confirme seu e-mail</h1>
-            <p style="color:#c7d2fe;margin:0;font-size:13px;">SecretariaSistema${nomeIgreja ? ` — ${nomeIgreja}` : ""}</p>
+            <p style="color:#c7d2fe;margin:0;font-size:13px;">Gestão Secretaria${nomeIgreja ? ` — ${nomeIgreja}` : ""}</p>
           </div>
           <div style="padding:28px 24px;background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
             <p style="color:#374151;font-size:15px;line-height:1.6;">
@@ -107,7 +107,7 @@ async function enviarEmailVerificacao(destinatario, nomeIgreja, verifyUrl) {
             </p>
             <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
             <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">
-              SecretariaSistema · Plataforma de gestão de membros
+              Gestão Secretaria · Plataforma de gestão de membros
             </p>
           </div>
         </div>`,
@@ -128,15 +128,15 @@ async function enviarEmailBoasVindas(destinatario, nomeIgreja) {
     });
     const dashboardUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/dashboard`;
     await transporter.sendMail({
-        from: `"SecretariaSistema" <${process.env.SMTP_USER}>`,
+        from: `"Gestão Secretaria" <${process.env.SMTP_USER}>`,
         to: destinatario,
-        subject: `Bem-vindo ao SecretariaSistema${nomeIgreja ? ` — ${nomeIgreja}` : ""}! 🎉`,
+        subject: `Bem-vindo ao Gestão Secretaria${nomeIgreja ? ` — ${nomeIgreja}` : ""}! 🎉`,
         html: `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
           <div style="background:linear-gradient(135deg,#1a56db,#6366f1);padding:28px 24px;border-radius:12px 12px 0 0;text-align:center;">
             <p style="font-size:36px;margin:0;">🎉</p>
-            <h1 style="color:#fff;margin:8px 0 4px;font-size:22px;">Bem-vindo ao SecretariaSistema!</h1>
-            <p style="color:#c7d2fe;margin:0;font-size:13px;">${nomeIgreja || "SecretariaSistema"}</p>
+            <h1 style="color:#fff;margin:8px 0 4px;font-size:22px;">Bem-vindo ao Gestão Secretaria!</h1>
+            <p style="color:#c7d2fe;margin:0;font-size:13px;">${nomeIgreja || "Gestão Secretaria"}</p>
           </div>
           <div style="padding:28px 24px;background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
             <p style="color:#374151;font-size:15px;line-height:1.6;">
@@ -157,7 +157,7 @@ async function enviarEmailBoasVindas(destinatario, nomeIgreja) {
             </div>
             <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
             <p style="color:#9ca3af;font-size:12px;text-align:center;margin:0;">
-              SecretariaSistema · Plataforma de gestão de membros para igrejas
+              Gestão Secretaria · Plataforma de gestão de membros para igrejas
             </p>
           </div>
         </div>`,
