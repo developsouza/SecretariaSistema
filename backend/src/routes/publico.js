@@ -57,7 +57,7 @@ router.get("/verificar-membro/:igrejaSlug/:membroId", (req, res, next) => {
         const db = getDb();
         const igrejaSlug = req.params.igrejaSlug.toLowerCase().trim();
         const igreja = db
-            .prepare("SELECT id, nome, logo_url, cor_primaria, cor_secundaria FROM igrejas WHERE slug = ? AND ativo = 1")
+            .prepare("SELECT id, nome, nome_curto, logo_url, cor_primaria, cor_secundaria FROM igrejas WHERE slug = ? AND ativo = 1")
             .get(igrejaSlug);
         if (!igreja) return res.status(404).json({ valido: false, erro: "Igreja não encontrada" });
 
@@ -86,6 +86,7 @@ router.get("/verificar-membro/:igrejaSlug/:membroId", (req, res, next) => {
             },
             igreja: {
                 nome: igreja.nome,
+                nome_curto: igreja.nome_curto || null,
                 logo_url: igreja.logo_url || null,
                 cor_primaria: igreja.cor_primaria || "#1a56db",
                 cor_secundaria: igreja.cor_secundaria || "#6366f1",

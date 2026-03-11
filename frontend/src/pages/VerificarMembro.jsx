@@ -10,8 +10,12 @@ function hexToRgb(hex) {
     const h = hex.replace("#", "");
     return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
 }
-function dk(c, amt) { return Math.max(0, c - amt); }
-function toHex(r, g, b) { return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join(""); }
+function dk(c, amt) {
+    return Math.max(0, c - amt);
+}
+function toHex(r, g, b) {
+    return "#" + [r, g, b].map((x) => x.toString(16).padStart(2, "0")).join("");
+}
 
 export default function VerificarMembro() {
     const { slug, membroId } = useParams();
@@ -39,7 +43,7 @@ export default function VerificarMembro() {
     const cor1 = igreja?.cor_primaria || "#1e3a8a";
     const cor2 = igreja?.cor_secundaria || "#3b82f6";
     const [r1, g1, b1] = hexToRgb(cor1);
-    const corDark  = toHex(dk(r1, 30), dk(g1, 30), dk(b1, 30));
+    const corDark = toHex(dk(r1, 30), dk(g1, 30), dk(b1, 30));
     const corDark2 = toHex(dk(r1, 15), dk(g1, 15), dk(b1, 15));
 
     const agora = new Date();
@@ -50,12 +54,8 @@ export default function VerificarMembro() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-900 to-blue-950 flex items-center justify-center p-4">
             <div className="w-full max-w-xs">
-
                 {/* ── CARTÃO EM RETRATO ───────────────────────────────── */}
-                <div
-                    className="w-full rounded-2xl overflow-hidden shadow-2xl select-none"
-                    style={{ background: "#fcfdff" }}
-                >
+                <div className="w-full rounded-2xl overflow-hidden shadow-2xl select-none" style={{ background: "#fcfdff" }}>
                     {isError ? (
                         <div className="p-10 text-center">
                             <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-3">
@@ -71,14 +71,20 @@ export default function VerificarMembro() {
                                 className="relative overflow-hidden px-4 pt-5 pb-4"
                                 style={{ background: `linear-gradient(90deg, ${cor1} 0%, ${cor2} 100%)` }}
                             >
-                                <div className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none"
-                                    style={{ background: "rgba(255,255,255,0.08)" }} />
-                                <div className="absolute right-6 bottom-0 w-20 h-20 rounded-full pointer-events-none"
-                                    style={{ background: "rgba(255,255,255,0.06)" }} />
+                                <div
+                                    className="absolute -right-8 -top-8 w-32 h-32 rounded-full pointer-events-none"
+                                    style={{ background: "rgba(255,255,255,0.08)" }}
+                                />
+                                <div
+                                    className="absolute right-6 bottom-0 w-20 h-20 rounded-full pointer-events-none"
+                                    style={{ background: "rgba(255,255,255,0.06)" }}
+                                />
 
                                 <div className="relative z-10 flex items-center gap-3">
-                                    <div className="shrink-0 w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden"
-                                        style={{ background: "rgba(255,255,255,0.15)" }}>
+                                    <div
+                                        className="shrink-0 w-14 h-14 rounded-xl flex items-center justify-center overflow-hidden"
+                                        style={{ background: "rgba(255,255,255,0.15)" }}
+                                    >
                                         {igreja?.logo_url ? (
                                             <img src={igreja.logo_url} alt="" className="w-full h-full object-contain p-1" />
                                         ) : (
@@ -86,8 +92,10 @@ export default function VerificarMembro() {
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className="text-[9px] uppercase tracking-widest font-semibold mb-0.5"
-                                            style={{ color: "rgba(255,255,255,0.7)" }}>
+                                        <p
+                                            className="text-[9px] uppercase tracking-widest font-semibold mb-0.5"
+                                            style={{ color: "rgba(255,255,255,0.7)" }}
+                                        >
                                             Carteira de Membro
                                         </p>
                                         <p className="text-white font-bold text-sm leading-tight">{igreja?.nome || "—"}</p>
@@ -100,9 +108,7 @@ export default function VerificarMembro() {
 
                             {/* ══ IDENTIDADE ═══════════════════════════ */}
                             <div className="px-4 pt-4 pb-2 text-center border-b border-gray-100">
-                                <p className="text-[9px] uppercase tracking-widest text-gray-400 mb-0.5">
-                                    Carteira de Identidade de
-                                </p>
+                                <p className="text-[9px] uppercase tracking-widest text-gray-400 mb-0.5">Carteira de Identidade de</p>
                                 <p className="text-sm font-extrabold uppercase tracking-wide" style={{ color: cor1 }}>
                                     {membro?.cargo || "Membro"}
                                 </p>
@@ -119,14 +125,9 @@ export default function VerificarMembro() {
                                     }}
                                 >
                                     {membro?.foto_url ? (
-                                        <img
-                                            src={membro.foto_url}
-                                            alt={membro.nome}
-                                            className="w-full h-full object-cover"
-                                        />
+                                        <img src={membro.foto_url} alt={membro.nome} className="w-full h-full object-cover" />
                                     ) : (
-                                        <div className="w-full h-full flex items-center justify-center"
-                                            style={{ background: "#f0f4fc" }}>
+                                        <div className="w-full h-full flex items-center justify-center" style={{ background: "#f0f4fc" }}>
                                             <User className="w-12 h-12" style={{ color: "#c0c8dc" }} />
                                         </div>
                                     )}
@@ -135,10 +136,11 @@ export default function VerificarMembro() {
                                         className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full flex items-center justify-center"
                                         style={{ background: isValido ? "#10b981" : "#ef4444", boxShadow: "0 0 0 2px white" }}
                                     >
-                                        {isValido
-                                            ? <CheckCircle2 className="w-3.5 h-3.5 text-white" />
-                                            : <XCircle className="w-3.5 h-3.5 text-white" />
-                                        }
+                                        {isValido ? (
+                                            <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                        ) : (
+                                            <XCircle className="w-3.5 h-3.5 text-white" />
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -167,8 +169,7 @@ export default function VerificarMembro() {
                                     </DataRow>
                                 )}
                                 <DataRow icon={<ShieldCheck className="w-3 h-3" />} label="Situação">
-                                    <span className="font-bold capitalize"
-                                        style={{ color: isValido ? "#059669" : "#dc2626" }}>
+                                    <span className="font-bold capitalize" style={{ color: isValido ? "#059669" : "#dc2626" }}>
                                         {membro?.situacao || "—"}
                                     </span>
                                 </DataRow>
@@ -182,14 +183,9 @@ export default function VerificarMembro() {
                                 <div className="flex items-center gap-1.5">
                                     <ShieldCheck className="w-3 h-3" style={{ color: "rgba(255,255,255,0.6)" }} />
                                     <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.6)" }}>
-                                        SecretariaSistema
+                                        {igreja?.nome_curto || igreja?.nome || "—"}
                                     </span>
                                 </div>
-                                {numRol && (
-                                    <span className="text-[11px] font-bold tracking-wider text-white">
-                                        ROL: {numRol}
-                                    </span>
-                                )}
                                 <span className="text-[10px]" style={{ color: "rgba(255,255,255,0.55)" }}>
                                     {dataVerificacao}
                                 </span>
@@ -211,14 +207,10 @@ export default function VerificarMembro() {
                             className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
                             style={{ background: isValido ? "#10b981" : "#ef4444" }}
                         >
-                            {isValido
-                                ? <CheckCircle2 className="w-5 h-5 text-white" />
-                                : <XCircle className="w-5 h-5 text-white" />
-                            }
+                            {isValido ? <CheckCircle2 className="w-5 h-5 text-white" /> : <XCircle className="w-5 h-5 text-white" />}
                         </div>
                         <div>
-                            <p className="font-bold text-sm"
-                                style={{ color: isValido ? "#d1fae5" : "#fee2e2" }}>
+                            <p className="font-bold text-sm" style={{ color: isValido ? "#d1fae5" : "#fee2e2" }}>
                                 {isValido ? "Credencial Verificada" : "Credencial Inválida"}
                             </p>
                             <p className="text-xs mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
@@ -227,7 +219,6 @@ export default function VerificarMembro() {
                         </div>
                     </div>
                 )}
-
             </div>
         </div>
     );
