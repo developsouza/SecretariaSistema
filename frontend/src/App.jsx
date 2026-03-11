@@ -52,24 +52,57 @@ function PageLoader() {
     );
 }
 
+// Detecta erros de carregamento de chunk (ChunkLoadError) — comum após novos deploys
+// quando o navegador tenta carregar um arquivo JS com hash antigo que não existe mais.
+function isChunkLoadError(error) {
+    if (!error) return false;
+    const msg = error.message || "";
+    return (
+        error.name === "ChunkLoadError" ||
+        msg.includes("Failed to fetch dynamically imported module") ||
+        msg.includes("Loading chunk") ||
+        msg.includes("Loading CSS chunk") ||
+        msg.includes("Importing a module script failed")
+    );
+}
+
 // Error Boundary — captura erros de renderização sem derrubar o app inteiro
 class ErrorBoundary extends Component {
     constructor(props) {
         super(props);
-        this.state = { hasError: false };
+        this.state = { hasError: false, reloaded: false };
     }
-    static getDerivedStateFromError() {
-        return { hasError: true };
+    static getDerivedStateFromError(error) {
+        // ChunkLoadError: recarrega a página uma única vez para buscar os chunks atualizados
+        if (isChunkLoadError(error)) {
+            const jaRecarregou = sessionStorage.getItem("chunk_reload") === "1";
+            if (!jaRecarregou) {
+                sessionStorage.setItem("chunk_reload", "1");
+                window.location.reload();
+                return { hasError: false, reloaded: true };
+            }
+        }
+        return { hasError: true, reloaded: false };
     }
     componentDidCatch(error, info) {
         console.error("[ErrorBoundary]", error, info);
+        // Limpa a flag de reload para que erros futuros possam tentar novamente
+        if (!isChunkLoadError(error)) {
+            sessionStorage.removeItem("chunk_reload");
+        }
     }
     render() {
         if (this.state.hasError) {
             return (
                 <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 dark:bg-dark-900 gap-4">
                     <p className="text-lg font-semibold text-gray-700 dark:text-gray-200">Algo deu errado ao carregar esta página.</p>
-                    <button className="px-4 py-2 bg-primary text-white rounded-lg text-sm" onClick={() => this.setState({ hasError: false })}>
+                    <button
+                        className="px-4 py-2 bg-primary text-white rounded-lg text-sm"
+                        onClick={() => {
+                            sessionStorage.removeItem("chunk_reload");
+                            this.setState({ hasError: false });
+                        }}
+                    >
                         Tentar novamente
                     </button>
                 </div>

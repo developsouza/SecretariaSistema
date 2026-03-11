@@ -16,6 +16,10 @@ const rateLimit = require("express-rate-limit");
 
 const app = express();
 
+// Confia no primeiro proxy reverso (nginx) para que req.ip retorne o IP real do cliente.
+// Necessário para o express-rate-limit funcionar corretamente em produção.
+app.set("trust proxy", 1);
+
 // ─── Segurança & Middlewares ───────────────────────────────────────────────
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 app.use(compression());
