@@ -3,7 +3,7 @@
 # update.sh — Re-deploy incremental do SecretariaSistema
 # Uso: sudo bash update.sh
 # Rodar após fazer push de alterações no repositório.
-# Só executa as etapas afetadas pelas mudanças de código.
+# Só executa as etapas afetadas pelas mudanças de código...
 # =============================================================================
 
 set -e
