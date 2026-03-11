@@ -27,7 +27,13 @@ export function SuperAdminProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        verificarSessao();
+        // Só chama a API se há dados no localStorage para validar — evita 401 desnecessário no console
+        const stored = localStorage.getItem("ss_superadmin");
+        if (stored && stored !== "null") {
+            verificarSessao();
+        } else {
+            setLoading(false);
+        }
     }, [verificarSessao]);
 
     const login = async (email, senha) => {

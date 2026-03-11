@@ -15,7 +15,8 @@ export function AuthProvider({ children }) {
             const usuarioAtualizado = data.usuario.igreja ? data.usuario : { ...data.usuario, ...(data.igreja ? { igreja: data.igreja } : {}) };
             setUsuario(usuarioAtualizado);
         } catch {
-            // Cookie ausente ou expirado
+            // Cookie ausente ou expirado — limpa o hint para evitar chamadas futuras desnecessárias
+            localStorage.removeItem("ss_auth");
             setUsuario(null);
         } finally {
             setLoading(false);
@@ -23,12 +24,18 @@ export function AuthProvider({ children }) {
     }, []);
 
     useEffect(() => {
-        verificarSessao();
+        // Só chama a API se há hint de sessão ativa — evita 401 desnecessário no console
+        if (localStorage.getItem("ss_auth")) {
+            verificarSessao();
+        } else {
+            setLoading(false);
+        }
     }, [verificarSessao]);
 
     const login = async (email, senha) => {
         const { data } = await authAPI.login({ email, senha });
         // O backend seta o cookie httpOnly; guardamos os dados apenas em memória
+        localStorage.setItem("ss_auth", "1");
         setUsuario(data.usuario);
         return data;
     };
@@ -39,6 +46,7 @@ export function AuthProvider({ children }) {
         } catch {
             // ignora falha de rede; cookie será limpo pelo servidor quando expirar
         }
+        localStorage.removeItem("ss_auth");
         setUsuario(null);
         window.location.href = "/login";
     };
