@@ -15,6 +15,8 @@ import {
     CalendarDays,
     BookOpen,
     Church,
+    ExternalLink,
+    Download,
 } from "lucide-react";
 import api from "../../services/api";
 import clsx from "clsx";
@@ -80,6 +82,34 @@ function formatarDataHoraBR(isoDate, hora) {
     if (!isoDate) return "";
     const dateStr = formatarDataBR(isoDate);
     return hora ? `${dateStr} às ${hora}` : dateStr;
+}
+
+function gerarUrlGoogleCalendar(evento) {
+    const pad = (n) => String(n).padStart(2, "0");
+    let datesParam;
+    if (evento.dia_todo) {
+        const inicio = evento.data_inicio.replace(/-/g, "");
+        const dataFim = evento.data_fim || evento.data_inicio;
+        const fim = new Date(dataFim + "T12:00:00");
+        fim.setDate(fim.getDate() + 1);
+        const fimStr = `${fim.getFullYear()}${pad(fim.getMonth() + 1)}${pad(fim.getDate())}`;
+        datesParam = `${inicio}/${fimStr}`;
+    } else {
+        const inicioDate = evento.data_inicio.replace(/-/g, "");
+        const inicioHora = (evento.hora_inicio || "00:00").replace(":", "");
+        const dataFim = evento.data_fim || evento.data_inicio;
+        const fimDate = dataFim.replace(/-/g, "");
+        const fimHora = (evento.hora_fim || evento.hora_inicio || "00:00").replace(":", "");
+        datesParam = `${inicioDate}T${inicioHora}00/${fimDate}T${fimHora}00`;
+    }
+    const params = new URLSearchParams({
+        text: evento.titulo,
+        dates: datesParam,
+        ctz: "America/Sao_Paulo",
+    });
+    if (evento.descricao) params.set("details", evento.descricao);
+    if (evento.local) params.set("location", evento.local);
+    return `https://calendar.google.com/calendar/r/eventedit?${params.toString()}`;
 }
 
 // ─── Componente Modal de evento ─────────────────────────────────────────────
@@ -406,6 +436,19 @@ function EventoDetalheModal({ evento, tipo, onClose, onEditar, onExcluir }) {
                         </div>
                     )}
 
+                    {/* Botão Google Calendar */}
+                    <div className="pt-2 border-t border-gray-100 dark:border-gray-700">
+                        <a
+                            href={gerarUrlGoogleCalendar(evento)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-blue-200 dark:border-blue-800 text-blue-600 dark:text-blue-400 text-sm font-medium hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-colors"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                            Adicionar ao Google Calendar
+                        </a>
+                    </div>
+
                     <div className="flex gap-3 pt-2">
                         <button
                             onClick={handleExcluir}
@@ -679,16 +722,26 @@ export default function AgendaPage() {
                     </h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Gerencie os compromissos pastorais e os eventos da igreja</p>
                 </div>
-                <button
-                    onClick={() => {
-                        setFormDataInicial("");
-                        setModalNovo(true);
-                    }}
-                    className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm"
-                >
-                    <Plus className="w-4 h-4" />
-                    Novo {aba === "pastoral" ? "Compromisso" : "Evento"}
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={() => window.open(`/api/agenda/exportar-ics?tipo=${aba}&mes=${mesStr}`, "_blank")}
+                        title="Exportar como .ics (Google Calendar / Apple Calendar)"
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                        <Download className="w-4 h-4" />
+                        Exportar ICS
+                    </button>
+                    <button
+                        onClick={() => {
+                            setFormDataInicial("");
+                            setModalNovo(true);
+                        }}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Novo {aba === "pastoral" ? "Compromisso" : "Evento"}
+                    </button>
+                </div>
             </div>
 
             {/* Abas */}

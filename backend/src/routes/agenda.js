@@ -10,6 +10,22 @@ function validarTipo(tipo) {
     return tipo === "pastoral" || tipo === "evento";
 }
 
+function escaparIcs(str) {
+    if (!str) return "";
+    return str.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+}
+
+function dobrarLinhaIcs(linha) {
+    if (Buffer.byteLength(linha, "utf8") <= 75) return linha;
+    const resultado = [linha.slice(0, 75)];
+    let i = 75;
+    while (i < linha.length) {
+        resultado.push(" " + linha.slice(i, i + 74));
+        i += 74;
+    }
+    return resultado.join("\r\n");
+}
+
 // ─── GET /api/agenda?tipo=pastoral&mes=2026-03 ─────────────────────────────
 // Lista eventos do mês/tipo especificado
 router.get("/", (req, res, next) => {
@@ -45,6 +61,80 @@ router.get("/", (req, res, next) => {
             .all(...params);
 
         res.json({ eventos });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── GET /api/agenda/exportar-ics?tipo=pastoral&mes=2026-03 ───────────────
+// Gera arquivo .ics compatível com Google Calendar / Apple Calendar
+router.get("/exportar-ics", (req, res, next) => {
+    try {
+        const db = getDb();
+        const { tipo, mes } = req.query;
+
+        let where = "WHERE e.igreja_id = ?";
+        const params = [req.igreja.id];
+
+        if (tipo && validarTipo(tipo)) {
+            where += " AND e.tipo = ?";
+            params.push(tipo);
+        }
+        if (mes) {
+            where += " AND strftime('%Y-%m', e.data_inicio) = ?";
+            params.push(mes);
+        }
+
+        const eventos = db.prepare(`SELECT * FROM agenda_eventos e ${where} ORDER BY e.data_inicio ASC, e.hora_inicio ASC`).all(...params);
+
+        const pad = (n) => String(n).padStart(2, "0");
+        const dtstamp = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15) + "Z";
+
+        const linhas = [
+            "BEGIN:VCALENDAR",
+            "VERSION:2.0",
+            "PRODID:-//SecretariaSistema//Agenda//PT",
+            "CALSCALE:GREGORIAN",
+            "METHOD:PUBLISH",
+            "X-WR-CALNAME:Agenda - SecretariaSistema",
+            "X-WR-TIMEZONE:America/Sao_Paulo",
+        ];
+
+        for (const ev of eventos) {
+            const uid = `${ev.id}@secretariasistema`;
+
+            let dtstart, dtend;
+            if (ev.dia_todo) {
+                const inicioStr = ev.data_inicio.replace(/-/g, "");
+                dtstart = `DTSTART;VALUE=DATE:${inicioStr}`;
+                const dataFim = ev.data_fim || ev.data_inicio;
+                const fim = new Date(dataFim + "T12:00:00");
+                fim.setDate(fim.getDate() + 1);
+                const fimStr = `${fim.getFullYear()}${pad(fim.getMonth() + 1)}${pad(fim.getDate())}`;
+                dtend = `DTEND;VALUE=DATE:${fimStr}`;
+            } else {
+                const inicioStr = `${ev.data_inicio.replace(/-/g, "")}T${(ev.hora_inicio || "00:00").replace(":", "")}00`;
+                dtstart = `DTSTART;TZID=America/Sao_Paulo:${inicioStr}`;
+                const dataFim = ev.data_fim || ev.data_inicio;
+                const horaFim = ev.hora_fim || ev.hora_inicio || "00:00";
+                const fimStr = `${dataFim.replace(/-/g, "")}T${horaFim.replace(":", "")}00`;
+                dtend = `DTEND;TZID=America/Sao_Paulo:${fimStr}`;
+            }
+
+            linhas.push("BEGIN:VEVENT", `UID:${uid}`, `DTSTAMP:${dtstamp}`, dtstart, dtend, dobrarLinhaIcs(`SUMMARY:${escaparIcs(ev.titulo)}`));
+            if (ev.descricao) linhas.push(dobrarLinhaIcs(`DESCRIPTION:${escaparIcs(ev.descricao)}`));
+            if (ev.local) linhas.push(dobrarLinhaIcs(`LOCATION:${escaparIcs(ev.local)}`));
+            linhas.push("END:VEVENT");
+        }
+
+        linhas.push("END:VCALENDAR");
+
+        const tipoLabel = tipo === "pastoral" ? "agenda-pastoral" : tipo === "evento" ? "eventos-igreja" : "agenda";
+        const nomeArquivo = `${tipoLabel}-${mes || "todos"}.ics`;
+
+        res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+        res.setHeader("Content-Disposition", `attachment; filename="${nomeArquivo}"`);
+        res.send(linhas.join("\r\n"));
     } catch (err) {
         next(err);
     }
