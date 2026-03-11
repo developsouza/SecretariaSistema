@@ -30,7 +30,8 @@ async function authMiddleware(req, res, next) {
              i.logo_url, i.cor_primaria, i.cor_secundaria, i.cor_texto,
              i.cancelado_em, i.onboarding_steps, i.trial_end,
              COALESCE(p.limite_membros, (SELECT limite_membros FROM planos WHERE ativo = 1 ORDER BY preco_mensal ASC LIMIT 1)) AS limite_membros,
-             p.recursos AS plano_recursos
+             p.recursos AS plano_recursos,
+             p.nome AS plano_nome
       FROM usuarios u
       JOIN igrejas i ON i.id = u.igreja_id
       LEFT JOIN planos p ON p.id = i.plano_id
@@ -68,6 +69,7 @@ async function authMiddleware(req, res, next) {
             cor_texto: usuario.cor_texto,
             limite_membros: usuario.limite_membros,
             plano_recursos: usuario.plano_recursos ? JSON.parse(usuario.plano_recursos) : {},
+            plano_nome: usuario.plano_nome || null,
             cancelado_em: usuario.cancelado_em || null,
             grace_period: gracePeriod,
             grace_days_left: gracePeriod ? 30 - diasDesde : 0,

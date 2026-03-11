@@ -102,7 +102,8 @@ function ModalEntrega({ membro, onClose, onSalvo }) {
 export default function CarteirasPage() {
     const { usuario } = useAuth();
     const navigate = useNavigate();
-    const temQRCode = !!usuario?.igreja?.plano_recursos?.qrcode;
+    const planoNome = usuario?.igreja?.plano_nome || "";
+    const temQRCode = !!usuario?.igreja?.plano_recursos?.qrcode || planoNome === "Profissional" || planoNome === "Premium";
 
     const [busca, setBusca] = useState("");
     const [congregacaoId, setCongregacaoId] = useState("");
