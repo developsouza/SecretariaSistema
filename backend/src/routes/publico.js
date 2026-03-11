@@ -56,13 +56,16 @@ router.get("/verificar-membro/:igrejaSlug/:membroId", (req, res, next) => {
     try {
         const db = getDb();
         const igrejaSlug = req.params.igrejaSlug.toLowerCase().trim();
-        const igreja = db.prepare("SELECT id, nome FROM igrejas WHERE slug = ? AND ativo = 1").get(igrejaSlug);
+        const igreja = db
+            .prepare("SELECT id, nome, logo_url, cor_primaria, cor_secundaria FROM igrejas WHERE slug = ? AND ativo = 1")
+            .get(igrejaSlug);
         if (!igreja) return res.status(404).json({ valido: false, erro: "Igreja não encontrada" });
 
         const membro = db
             .prepare(
                 `
-      SELECT numero_membro, nome_completo, cargo, situacao, data_entrada_igreja, carteira_gerada_em
+      SELECT numero_membro, nome_completo, cargo, situacao, data_entrada_igreja,
+             carteira_gerada_em, foto_url, congregacao_nome
       FROM membros WHERE id = ? AND igreja_id = ?
     `,
             )
@@ -78,8 +81,15 @@ router.get("/verificar-membro/:igrejaSlug/:membroId", (req, res, next) => {
                 cargo: membro.cargo,
                 situacao: membro.situacao,
                 membro_desde: membro.data_entrada_igreja,
+                foto_url: membro.foto_url || null,
+                congregacao: membro.congregacao_nome || null,
             },
-            igreja: { nome: igreja.nome },
+            igreja: {
+                nome: igreja.nome,
+                logo_url: igreja.logo_url || null,
+                cor_primaria: igreja.cor_primaria || "#1a56db",
+                cor_secundaria: igreja.cor_secundaria || "#6366f1",
+            },
         });
     } catch (err) {
         next(err);
