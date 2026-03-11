@@ -40,15 +40,18 @@ BACKEND_DEPS_MUDOU=false
 BACKEND_MUDOU=false
 FRONTEND_DEPS_MUDOU=false
 FRONTEND_MUDOU=false
+NGINX_MUDOU=false
 
-echo "$MUDANCAS" | grep -q "^backend/package" && BACKEND_DEPS_MUDOU=true
-echo "$MUDANCAS" | grep -q "^backend/"        && BACKEND_MUDOU=true
-echo "$MUDANCAS" | grep -q "^frontend/package" && FRONTEND_DEPS_MUDOU=true
-echo "$MUDANCAS" | grep -q "^frontend/"        && FRONTEND_MUDOU=true
+echo "$MUDANCAS" | grep -q "^backend/package"      && BACKEND_DEPS_MUDOU=true
+echo "$MUDANCAS" | grep -q "^backend/"             && BACKEND_MUDOU=true
+echo "$MUDANCAS" | grep -q "^frontend/package"     && FRONTEND_DEPS_MUDOU=true
+echo "$MUDANCAS" | grep -q "^frontend/"            && FRONTEND_MUDOU=true
+echo "$MUDANCAS" | grep -q "^deploy/nginx/"        && NGINX_MUDOU=true
 
 echo "  Mudanças detectadas:"
 [ "$BACKEND_MUDOU" = true ]  && echo "    • Backend  (deps: $BACKEND_DEPS_MUDOU)"
 [ "$FRONTEND_MUDOU" = true ] && echo "    • Frontend (deps: $FRONTEND_DEPS_MUDOU)"
+[ "$NGINX_MUDOU" = true ]    && echo "    • Config NGINX"
 echo ""
 
 # ── Backend ───────────────────────────────────────────────────────────────────
@@ -110,8 +113,15 @@ else
 fi
 
 # ── NGINX (reload gracioso, sem derrubar conexões ativas) ─────────────────────
-if [ "$FRONTEND_MUDOU" = true ]; then
+if [ "$FRONTEND_MUDOU" = true ] || [ "$NGINX_MUDOU" = true ]; then
   echo "[4/4] Recarregando NGINX..."
+
+  # Se a config do nginx mudou, copia o arquivo atualizado antes do reload
+  if [ "$NGINX_MUDOU" = true ]; then
+    echo "  → Aplicando nova configuração nginx..."
+    cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/secretariasistema
+  fi
+
   nginx -t && systemctl reload nginx
   echo "  ✅ NGINX recarregado."
 else

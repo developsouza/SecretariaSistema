@@ -1,0 +1,27 @@
+name: Deploy em Produção
+
+# Dispara automaticamente após push na branch main
+on:
+    push:
+        branches: [main]
+
+    # Permite disparar manualmente pelo painel do GitHub Actions
+    workflow_dispatch:
+
+jobs:
+    deploy:
+        name: SSH → update.sh no servidor
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Deploy via SSH
+              uses: appleboy/ssh-action@v1.2.0
+              with:
+                  host: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: ${{ secrets.SSH_PORT }}
+                  # Tempo máximo para o update.sh terminar (build do frontend pode demorar)
+                  command_timeout: 15m
+                  script: |
+                      sudo bash /var/www/secretariasistema/deploy/update.sh
