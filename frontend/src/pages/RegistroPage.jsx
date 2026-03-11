@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
@@ -49,25 +49,27 @@ const DENOMINACOES = [
     "Outra",
 ];
 
-function GlassInput({ className = "", ...props }) {
+const GlassInput = forwardRef(function GlassInput({ className = "", ...props }, ref) {
     return (
         <input
+            ref={ref}
             className={`w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 focus:border-primary/60 backdrop-blur-sm transition-all ${className}`}
             {...props}
         />
     );
-}
+});
 
-function GlassSelect({ className = "", children, ...props }) {
+const GlassSelect = forwardRef(function GlassSelect({ className = "", children, ...props }, ref) {
     return (
         <select
+            ref={ref}
             className={`w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary/60 backdrop-blur-sm transition-all ${className}`}
             {...props}
         >
             {children}
         </select>
     );
-}
+});
 
 export default function RegistroPage() {
     const navigate = useNavigate();
@@ -79,31 +81,22 @@ export default function RegistroPage() {
         handleSubmit,
         watch,
         trigger,
-        getValues,
-        reset,
         formState: { errors, isSubmitting },
-    } = useForm({ shouldUnregister: true });
-
-    const [step1Data, setStep1Data] = useState(null);
+    } = useForm();
 
     const handleAvancar = async () => {
         const valid = await trigger(["nome_igreja", "cidade", "estado"]);
-        if (valid) {
-            setStep1Data(getValues());
-            setStep(2);
-        }
+        if (valid) setStep(2);
     };
 
     const handleBack = () => {
-        if (step1Data) reset(step1Data);
         setStep(1);
     };
 
     const onSubmit = async (data) => {
         try {
             // eslint-disable-next-line no-unused-vars
-            const { confirm_senha, ...step2Data } = data;
-            const payload = { ...step1Data, ...step2Data };
+            const { confirm_senha, ...payload } = data;
             await authAPI.registrar(payload);
             setSucesso(true);
         } catch (err) {
