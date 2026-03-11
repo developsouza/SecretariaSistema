@@ -57,6 +57,28 @@ async function authMiddleware(req, res, next) {
             : Infinity;
         const gracePeriod = usuario.stripe_status === "canceled" && diasDesde <= 30;
 
+        // Recursos canônicos por nome de plano — garante compatibilidade com bancos
+        // criados antes de migrações que adicionam novas flags.
+        const RECURSOS_POR_PLANO = {
+            Básico: { carteiras: true, qrcode: false, email: false, agenda: false, relatorios_basicos: true, relatorios_avancados: false },
+            Profissional: { carteiras: true, qrcode: true, email: true, agenda: true, relatorios_basicos: true, relatorios_avancados: true },
+            Premium: {
+                carteiras: true,
+                qrcode: true,
+                email: true,
+                agenda: true,
+                relatorios_basicos: true,
+                relatorios_avancados: true,
+                api_publica: true,
+                suporte_prioritario: true,
+            },
+        };
+
+        // Funde: DB como base, depois sobrescreve/complementa com o canônico do plano
+        const recursosDb = usuario.plano_recursos ? JSON.parse(usuario.plano_recursos) : {};
+        const recursosCanonicos = RECURSOS_POR_PLANO[usuario.plano_nome] || {};
+        const planoRecursos = { ...recursosDb, ...recursosCanonicos };
+
         req.igreja = {
             id: usuario.igreja_id,
             nome: usuario.igreja_nome,
@@ -68,7 +90,7 @@ async function authMiddleware(req, res, next) {
             cor_secundaria: usuario.cor_secundaria,
             cor_texto: usuario.cor_texto,
             limite_membros: usuario.limite_membros,
-            plano_recursos: usuario.plano_recursos ? JSON.parse(usuario.plano_recursos) : {},
+            plano_recursos: planoRecursos,
             plano_nome: usuario.plano_nome || null,
             cancelado_em: usuario.cancelado_em || null,
             grace_period: gracePeriod,

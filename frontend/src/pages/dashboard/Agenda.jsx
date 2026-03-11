@@ -638,9 +638,7 @@ function ListaEventos({ eventos, diaSelecionado, tipo, onEventoClick, onNovoEven
 // ─── Página principal ────────────────────────────────────────────────────────
 export default function AgendaPage() {
     const { usuario, loading: authLoading } = useAuth();
-    // Acesso pela flag no plano OU pelo nome do plano (fallback para planos criados antes da migração)
-    const planoNome = usuario?.igreja?.plano_nome || "";
-    const temAgenda = !!usuario?.igreja?.plano_recursos?.agenda || planoNome === "Profissional" || planoNome === "Premium";
+    const temAgenda = !!usuario?.igreja?.plano_recursos?.agenda;
 
     const hoje = new Date();
     const [aba, setAba] = useState("pastoral");
