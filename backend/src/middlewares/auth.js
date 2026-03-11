@@ -29,7 +29,8 @@ async function authMiddleware(req, res, next) {
              i.nome AS igreja_nome, i.nome_curto, i.slug, i.stripe_status, i.plano_id,
              i.logo_url, i.cor_primaria, i.cor_secundaria, i.cor_texto,
              i.cancelado_em, i.onboarding_steps, i.trial_end,
-             p.limite_membros, p.recursos AS plano_recursos
+             COALESCE(p.limite_membros, (SELECT limite_membros FROM planos WHERE ativo = 1 ORDER BY preco_mensal ASC LIMIT 1)) AS limite_membros,
+             p.recursos AS plano_recursos
       FROM usuarios u
       JOIN igrejas i ON i.id = u.igreja_id
       LEFT JOIN planos p ON p.id = i.plano_id

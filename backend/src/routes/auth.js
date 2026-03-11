@@ -196,8 +196,10 @@ router.post(
             const existing = db.prepare("SELECT id FROM igrejas WHERE slug LIKE ?").all(`${slug}%`);
             if (existing.length) slug = `${slug}-${existing.length}`;
 
-            // Plano básico
-            const planoBasico = db.prepare("SELECT id FROM planos WHERE nome = 'Básico'").get();
+            // Plano inicial: tenta "Básico" ou usa o plano ativo de menor preço
+            const planoBasico =
+                db.prepare("SELECT id FROM planos WHERE nome = 'Básico' AND ativo = 1").get() ||
+                db.prepare("SELECT id FROM planos WHERE ativo = 1 ORDER BY preco_mensal ASC LIMIT 1").get();
 
             const igrejaId = uuidv4();
             const emailToken = uuidv4();
