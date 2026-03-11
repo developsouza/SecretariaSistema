@@ -25,7 +25,14 @@ async function seed() {
             limite_membros: 500,
             preco_mensal: 99.9,
             preco_anual: 959.0,
-            recursos: JSON.stringify({ carteiras: true, qrcode: true, email: true, relatorios_basicos: true, relatorios_avancados: true }),
+            recursos: JSON.stringify({
+                carteiras: true,
+                qrcode: true,
+                email: true,
+                agenda: true,
+                relatorios_basicos: true,
+                relatorios_avancados: true,
+            }),
         },
         {
             id: uuidv4(),
@@ -38,6 +45,7 @@ async function seed() {
                 carteiras: true,
                 qrcode: true,
                 email: true,
+                agenda: true,
                 relatorios_basicos: true,
                 relatorios_avancados: true,
                 api_publica: true,

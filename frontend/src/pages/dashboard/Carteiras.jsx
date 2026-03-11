@@ -2,7 +2,9 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { membrosAPI, carteirasAPI } from "../../services/api";
-import { CreditCard, Download, RefreshCw, User, Search, CheckCircle2, PackageCheck, Clock, X, Building2 } from "lucide-react";
+import { CreditCard, Download, RefreshCw, User, Search, CheckCircle2, PackageCheck, Clock, X, Building2, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
 import { format, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { congregacoesAPI } from "../../services/api";
@@ -98,6 +100,10 @@ function ModalEntrega({ membro, onClose, onSalvo }) {
 }
 
 export default function CarteirasPage() {
+    const { usuario } = useAuth();
+    const navigate = useNavigate();
+    const temQRCode = !!usuario?.igreja?.plano_recursos?.qrcode;
+
     const [busca, setBusca] = useState("");
     const [congregacaoId, setCongregacaoId] = useState("");
     const [selecionados, setSelecionados] = useState([]);
@@ -159,6 +165,24 @@ export default function CarteirasPage() {
     return (
         <div className="space-y-5">
             {modalEntrega && <ModalEntrega membro={modalEntrega} onClose={() => setModalEntrega(null)} />}
+
+            {/* Banner de upgrade para QR Code */}
+            {!temQRCode && (
+                <div className="flex items-start gap-3 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 rounded-xl px-4 py-3">
+                    <Lock className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                    <div className="flex-1">
+                        <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                            Carteiras com QR Code — disponível nos planos Profissional e Premium
+                        </p>
+                        <p className="text-xs text-amber-700 dark:text-amber-400 mt-0.5">
+                            Seu plano atual gera carteiras básicas. Faça upgrade para incluir QR Code de validação nas carteiras dos membros.{" "}
+                            <button onClick={() => navigate("/dashboard/planos")} className="underline font-medium hover:no-underline">
+                                Ver planos
+                            </button>
+                        </p>
+                    </div>
+                </div>
+            )}
 
             <div className="page-header">
                 <div>

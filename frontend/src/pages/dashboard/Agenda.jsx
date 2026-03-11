@@ -20,6 +20,8 @@ import {
 } from "lucide-react";
 import api from "../../services/api";
 import clsx from "clsx";
+import { useAuth } from "../../hooks/useAuth";
+import RecursoBloqueado from "../../components/RecursoBloqueado";
 
 // ─── Constantes ────────────────────────────────────────────────────────────
 const DIAS_SEMANA = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -635,6 +637,9 @@ function ListaEventos({ eventos, diaSelecionado, tipo, onEventoClick, onNovoEven
 
 // ─── Página principal ────────────────────────────────────────────────────────
 export default function AgendaPage() {
+    const { usuario, loading: authLoading } = useAuth();
+    const temAgenda = !!usuario?.igreja?.plano_recursos?.agenda;
+
     const hoje = new Date();
     const [aba, setAba] = useState("pastoral");
     const [ano, setAno] = useState(hoje.getFullYear());
@@ -662,9 +667,10 @@ export default function AgendaPage() {
     }, [aba, mesStr]);
 
     useEffect(() => {
+        if (!temAgenda) return;
         carregarEventos();
         setDiaSelecionado(null);
-    }, [carregarEventos]);
+    }, [carregarEventos, temAgenda]);
 
     function prevMes() {
         if (mes === 0) {
@@ -710,6 +716,35 @@ export default function AgendaPage() {
         pastoral: { label: "Agenda Pastoral", icon: BookOpen, cor: "from-purple-600 to-indigo-600" },
         evento: { label: "Eventos da Igreja", icon: Church, cor: "from-blue-600 to-cyan-600" },
     };
+
+    // ── Plano sem acesso à Agenda ────────────────────────────────────────────
+    if (!authLoading && !temAgenda) {
+        return (
+            <div className="space-y-6">
+                <div>
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <Calendar className="w-7 h-7 text-primary" />
+                        Agenda
+                    </h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Gerencie os compromissos pastorais e os eventos da igreja</p>
+                </div>
+
+                <RecursoBloqueado
+                    titulo="Agenda Pastoral & Eventos da Igreja"
+                    descricao="Organize compromissos pastorais e eventos com calendário visual interativo, notificações automáticas e integração com Google Calendar."
+                    gradiente="from-purple-600 to-indigo-600"
+                    recursos={[
+                        "Agenda Pastoral com lembretes automáticos toda segunda-feira",
+                        "Calendário interativo de Eventos da Igreja",
+                        "Exportação para Google Calendar e Apple Calendar (.ics)",
+                        "Envio manual da agenda ao pastor via WhatsApp",
+                        "Notificações diárias com os compromissos do dia seguinte",
+                        "Suporte a eventos recorrentes (semanal, mensal, anual)",
+                    ]}
+                />
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">

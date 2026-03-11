@@ -190,6 +190,7 @@ export default function PlanosPage() {
                                 {plano.recursos?.carteiras && <PlanFeature text="Carteiras em PDF" />}
                                 {plano.recursos?.qrcode && <PlanFeature text="QR Code de validação" />}
                                 {plano.recursos?.email && <PlanFeature text="Notificações por e-mail" />}
+                                {plano.recursos?.agenda && <PlanFeature text="Agenda e calendário de eventos" />}
                                 {plano.recursos?.relatorios_avancados && <PlanFeature text="Relatórios avançados" />}
                                 {plano.recursos?.suporte_prioritario && <PlanFeature text="Suporte prioritário" />}
                             </ul>

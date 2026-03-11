@@ -450,6 +450,23 @@ function initSchema() {
           )
     `);
 
+    // Migração de recursos de planos — garantir que Profissional e Premium tenham `agenda: true`
+    try {
+        const planos = db.prepare("SELECT id, nome, recursos FROM planos").all();
+        for (const plano of planos) {
+            if (plano.nome === "Profissional" || plano.nome === "Premium") {
+                const recursos = JSON.parse(plano.recursos || "{}");
+                if (!recursos.agenda) {
+                    recursos.agenda = true;
+                    db.prepare("UPDATE planos SET recursos = ?, updated_at = datetime('now') WHERE id = ?").run(JSON.stringify(recursos), plano.id);
+                    console.log(`[DB] Plano "${plano.nome}" atualizado: agenda=true`);
+                }
+            }
+        }
+    } catch (_) {
+        /* planos ainda não criados — seed será executado depois */
+    }
+
     // Seed superadmin padrão se ainda não existir nenhum
     const totalSuperadmins = db.prepare("SELECT COUNT(*) AS n FROM superadmins").get().n;
     if (totalSuperadmins === 0) {
