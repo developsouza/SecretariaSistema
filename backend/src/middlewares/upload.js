@@ -2,7 +2,35 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 const { v4: uuidv4 } = require("uuid");
-const { fileTypeFromFile } = require("file-type");
+
+// Verificação de magic bytes sem dependência do file-type (ESM-only v19+)
+function detectMimeFromBuffer(buf) {
+    if (buf[0] === 0xff && buf[1] === 0xd8 && buf[2] === 0xff) return "image/jpeg";
+    if (buf[0] === 0x89 && buf[1] === 0x50 && buf[2] === 0x4e && buf[3] === 0x47) return "image/png";
+    if (
+        buf[0] === 0x52 &&
+        buf[1] === 0x49 &&
+        buf[2] === 0x46 &&
+        buf[3] === 0x46 &&
+        buf[8] === 0x57 &&
+        buf[9] === 0x45 &&
+        buf[10] === 0x42 &&
+        buf[11] === 0x50
+    )
+        return "image/webp";
+    return null;
+}
+
+async function fileTypeFromFile(filePath) {
+    return new Promise((resolve) => {
+        const fd = fs.openSync(filePath, "r");
+        const buf = Buffer.alloc(12);
+        fs.readSync(fd, buf, 0, 12, 0);
+        fs.closeSync(fd);
+        const mime = detectMimeFromBuffer(buf);
+        resolve(mime ? { mime } : null);
+    });
+}
 
 const UPLOAD_DIR = process.env.UPLOAD_DIR || "./uploads";
 
