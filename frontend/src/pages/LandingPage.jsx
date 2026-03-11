@@ -289,7 +289,7 @@ export default function LandingPage() {
                 </div>
                 <div className="relative z-10 max-w-2xl mx-auto">
                     <h2 className="text-3xl md:text-4xl font-extrabold mb-4 tracking-tight">Pronto para organizar sua secretaria?</h2>
-                    <p className="text-white/60 mb-8 text-lg">Junte-se a mais de 500 igrejas que já confiam no SecretariaSistema.</p>
+                    <p className="text-white/60 mb-8 text-lg">Junte-se a mais de 500 igrejas que já confiam no Secretaria Igreja.</p>
                     <Link
                         to="/registro"
                         className="group inline-flex items-center gap-2 px-10 py-4 bg-white text-gray-900 font-bold rounded-2xl hover:bg-gray-100 transition-all duration-200 shadow-2xl active:scale-[0.98] text-base"
@@ -307,7 +307,7 @@ export default function LandingPage() {
                             <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-700 rounded-xl flex items-center justify-center">
                                 <Church className="w-4 h-4 text-white" />
                             </div>
-                            <span className="font-bold text-white">SecretariaSistema</span>
+                            <span className="font-bold text-white">Secretaria Igreja</span>
                         </div>
                         <p className="text-sm leading-relaxed text-gray-500">
                             O sistema de gestão de membros feito para igrejas evangélicas brasileiras.
@@ -338,17 +338,17 @@ export default function LandingPage() {
                         <ul className="space-y-2.5 text-sm">
                             <li className="flex items-center gap-2">
                                 <Mail className="w-4 h-4" />
-                                contato@secretariasistema.com.br
+                                gilneysouza.dev@gmail.com
                             </li>
                             <li className="flex items-center gap-2">
                                 <Phone className="w-4 h-4" />
-                                (11) 9 9999-9999
+                                (83) 99334-6304
                             </li>
                         </ul>
                     </div>
                 </div>
                 <div className="max-w-6xl mx-auto mt-10 pt-8 border-t border-gray-800 text-center text-sm text-gray-600">
-                    &copy; {new Date().getFullYear()} SecretariaSistema. Todos os direitos reservados.
+                    &copy; {new Date().getFullYear()} Secretaria Igreja. Todos os direitos reservados | G3T Sistemas.
                 </div>
             </footer>
         </div>
