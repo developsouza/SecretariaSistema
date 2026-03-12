@@ -634,7 +634,8 @@ export default function AgendaPublica() {
                             <img
                                 src={igreja.logo_url}
                                 alt={`Logo ${igreja.nome}`}
-                                className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl object-contain bg-white/20 p-2 shadow-xl flex-shrink-0"
+                                className="w-24 h-24 sm:w-28 sm:h-28 object-contain flex-shrink-0"
+                                style={{ filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.25))" }}
                             />
                         ) : (
                             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white/20 flex items-center justify-center shadow-xl flex-shrink-0">
