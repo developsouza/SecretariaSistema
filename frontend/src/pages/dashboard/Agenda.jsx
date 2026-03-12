@@ -1151,18 +1151,6 @@ export default function AgendaPage() {
                 <StatCardAgenda icon={Clock} label={`Em ${stats.nomeMesProx}`} value={stats.eventosProxMes} sub="Próximo mês" color="amber" />
             </div>
 
-            {/* ── Aviso pastoral ──────────────────────────────────────────── */}
-            {aba === "pastoral" && (
-                <div className="flex items-start gap-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 rounded-xl px-4 py-3 text-sm text-purple-700 dark:text-purple-300">
-                    <MessageCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <div>
-                        <strong>Notificações automáticas:</strong> toda segunda às 06h é enviado um e-mail com a agenda da semana; e todo dia às 06h,
-                        um lembrete com os compromissos do dia seguinte — tudo via e-mail para o admin e para o pastor (se cadastrado em{" "}
-                        <em>Configurações › Igreja</em>). Use o botão <strong>WhatsApp</strong> em cada compromisso para envio manual.
-                    </div>
-                </div>
-            )}
-
             {/* ── Toolbar: abas + ações ────────────────────────────────────── */}
             <div>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 pb-0">
