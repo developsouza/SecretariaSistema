@@ -255,8 +255,12 @@ router.post("/login", loginLimiter, [body("email").isEmail().normalizeEmail(), b
             .prepare(
                 `
       SELECT u.*, i.nome AS igreja_nome, i.nome_curto, i.slug, i.stripe_status,
-             i.cor_primaria, i.cor_secundaria, i.logo_url
-      FROM usuarios u JOIN igrejas i ON i.id = u.igreja_id
+             i.cor_primaria, i.cor_secundaria, i.logo_url,
+             i.onboarding_steps, i.trial_end, i.cancelado_em,
+             p.recursos AS plano_recursos, p.nome AS plano_nome
+      FROM usuarios u
+      JOIN igrejas i ON i.id = u.igreja_id
+      LEFT JOIN planos p ON p.id = i.plano_id
       WHERE u.email = ? AND u.ativo = 1 AND i.ativo = 1
     `,
             )
@@ -290,6 +294,42 @@ router.post("/login", loginLimiter, [body("email").isEmail().normalizeEmail(), b
             path: "/",
         });
 
+        // Calcula plano_recursos idêntico ao authMiddleware (canônico sobrescreve DB)
+        const RECURSOS_POR_PLANO = {
+            Básico: {
+                carteiras: true,
+                qrcode: false,
+                email: false,
+                agenda: false,
+                agenda_publica: false,
+                relatorios_basicos: true,
+                relatorios_avancados: false,
+            },
+            Profissional: {
+                carteiras: true,
+                qrcode: true,
+                email: true,
+                agenda: true,
+                agenda_publica: true,
+                relatorios_basicos: true,
+                relatorios_avancados: true,
+            },
+            Premium: {
+                carteiras: true,
+                qrcode: true,
+                email: true,
+                agenda: true,
+                agenda_publica: true,
+                relatorios_basicos: true,
+                relatorios_avancados: true,
+                api_publica: true,
+                suporte_prioritario: true,
+            },
+        };
+        const recursosDb = usuario.plano_recursos ? JSON.parse(usuario.plano_recursos) : {};
+        const recursosCanonicos = RECURSOS_POR_PLANO[usuario.plano_nome] || {};
+        const planoRecursos = { ...recursosDb, ...recursosCanonicos };
+
         res.json({
             usuario: {
                 id: usuario.id,
@@ -305,6 +345,10 @@ router.post("/login", loginLimiter, [body("email").isEmail().normalizeEmail(), b
                     cor_primaria: usuario.cor_primaria,
                     cor_secundaria: usuario.cor_secundaria,
                     logo_url: usuario.logo_url,
+                    plano_recursos: planoRecursos,
+                    plano_nome: usuario.plano_nome || null,
+                    onboarding_steps: usuario.onboarding_steps ? JSON.parse(usuario.onboarding_steps) : {},
+                    trial_end: usuario.trial_end || null,
                 },
             },
         });

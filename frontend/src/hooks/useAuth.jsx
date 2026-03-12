@@ -36,7 +36,10 @@ export function AuthProvider({ children }) {
         const { data } = await authAPI.login({ email, senha });
         // O backend seta o cookie httpOnly; guardamos os dados apenas em memória
         localStorage.setItem("ss_auth", "1");
+        // Define usuário imediatamente — login response agora inclui plano_recursos
         setUsuario(data.usuario);
+        // Atualiza em background com dados completos do /me (onboarding_steps, limites, etc.)
+        verificarSessao();
         return data;
     };
 
