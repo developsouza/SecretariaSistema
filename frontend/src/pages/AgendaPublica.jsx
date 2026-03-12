@@ -634,7 +634,7 @@ export default function AgendaPublica() {
                             <img
                                 src={igreja.logo_url}
                                 alt={`Logo ${igreja.nome}`}
-                                className="w-24 h-24 sm:w-28 sm:h-28 object-contain flex-shrink-0"
+                                className="w-32 h-32 sm:w-40 sm:h-40 object-contain flex-shrink-0"
                                 style={{ filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.25))" }}
                             />
                         ) : (
@@ -648,7 +648,7 @@ export default function AgendaPublica() {
                             {igreja.denominacao && (
                                 <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">{igreja.denominacao}</p>
                             )}
-                            <h1 className="text-3xl sm:text-4xl font-extrabold text-white leading-tight">{igreja.nome}</h1>
+                            <h1 className="text-xl sm:text-2xl font-extrabold text-white leading-tight">{igreja.nome}</h1>
                             {(igreja.cidade || igreja.estado) && (
                                 <p className="text-white/80 text-sm mt-1.5">
                                     <MapPin className="w-3.5 h-3.5 inline mr-1 opacity-70" />
