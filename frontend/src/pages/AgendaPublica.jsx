@@ -627,14 +627,14 @@ export default function AgendaPublica() {
                     <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-white translate-y-1/2 -translate-x-1/4" />
                 </div>
 
-                <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+                <div className="relative max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                         {/* Logo ou ícone */}
                         {igreja.logo_url ? (
                             <img
                                 src={igreja.logo_url}
                                 alt={`Logo ${igreja.nome}`}
-                                className="w-32 h-32 sm:w-40 sm:h-40 object-contain flex-shrink-0"
+                                className="w-20 h-20 sm:w-24 sm:h-24 object-contain flex-shrink-0"
                                 style={{ filter: "drop-shadow(0 4px 16px rgba(0,0,0,0.25))" }}
                             />
                         ) : (
@@ -648,7 +648,8 @@ export default function AgendaPublica() {
                             {igreja.denominacao && (
                                 <p className="text-white/70 text-xs font-semibold uppercase tracking-widest mb-1">{igreja.denominacao}</p>
                             )}
-                            <h1 className="text-xl sm:text-2xl font-extrabold text-white leading-tight">{igreja.nome}</h1>
+                            <p className="text-white/90 text-sm font-semibold">{igreja.nome}</p>
+                            <h1 className="text-2xl sm:text-3xl font-extrabold text-white leading-tight mt-0.5">Agenda de eventos</h1>
                             {(igreja.cidade || igreja.estado) && (
                                 <p className="text-white/80 text-sm mt-1.5">
                                     <MapPin className="w-3.5 h-3.5 inline mr-1 opacity-70" />
@@ -670,7 +671,7 @@ export default function AgendaPublica() {
 
                     {/* Destaques dos próximos eventos */}
                     {proximosEventos.length > 0 && (
-                        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-3">
                             {proximosEventos.map((ev) => (
                                 <button
                                     key={ev.id}
