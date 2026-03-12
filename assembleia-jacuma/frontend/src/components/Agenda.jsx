@@ -48,11 +48,16 @@ export default function Agenda() {
 
     useEffect(() => {
         fetch(`${SAAS_API}/publico/agenda/${SLUG}`)
-            .then((r) => r.json())
+            .then((r) => {
+                if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                return r.json();
+            })
             .then((json) => {
                 if (json.eventos) setEventos(json.eventos.slice(0, 6));
             })
-            .catch(() => {})
+            .catch((err) => {
+                if (import.meta.env.DEV) console.warn("[Agenda] Erro ao carregar eventos:", err.message);
+            })
             .finally(() => setCarregando(false));
     }, []);
 

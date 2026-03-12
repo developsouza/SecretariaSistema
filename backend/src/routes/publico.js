@@ -285,8 +285,8 @@ router.get("/agenda/:slug", (req, res, next) => {
             where += " AND e.data_inicio BETWEEN ? AND ?";
             params.push(data_inicio, data_fim);
         } else {
-            // Padrão: próximos 90 dias
-            where += " AND e.data_inicio >= date('now') AND e.data_inicio <= date('now', '+90 days')";
+            // Padrão: próximos 90 dias (usando horário de Brasília UTC-3)
+            where += " AND e.data_inicio >= date('now', '-3 hours') AND e.data_inicio <= date('now', '-3 hours', '+90 days')";
         }
 
         const eventos = db
