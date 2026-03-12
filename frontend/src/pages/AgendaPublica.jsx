@@ -689,6 +689,12 @@ export default function AgendaPublica() {
                                             {ev.hora_inicio}
                                         </p>
                                     )}
+                                    {ev.local && (
+                                        <p className="text-white/60 text-xs mt-1">
+                                            <MapPin className="w-3 h-3 inline mr-0.5" />
+                                            {ev.local}
+                                        </p>
+                                    )}
                                 </button>
                             ))}
                         </div>
