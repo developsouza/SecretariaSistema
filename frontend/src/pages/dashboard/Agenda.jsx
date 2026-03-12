@@ -500,18 +500,18 @@ function Calendario({ ano, mes, eventos, onDiaClick, onPrevMes, onProxMes }) {
     for (let d = 1; d <= total; d++) cells.push(d);
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-            {/* Cabeçalho do calendário */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100 dark:border-gray-700">
+        <div>
+            {/* Navegação de mês */}
+            <div className="flex items-center justify-between mb-3">
                 <button
                     onClick={onPrevMes}
                     className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
                 >
                     <ChevronLeft className="w-4 h-4" />
                 </button>
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+                <span className="font-semibold text-gray-900 dark:text-white text-sm">
                     {MESES[mes]} {ano}
-                </h3>
+                </span>
                 <button
                     onClick={onProxMes}
                     className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
@@ -521,7 +521,7 @@ function Calendario({ ano, mes, eventos, onDiaClick, onPrevMes, onProxMes }) {
             </div>
 
             {/* Dias da semana */}
-            <div className="grid grid-cols-7 border-b border-gray-100 dark:border-gray-700">
+            <div className="grid grid-cols-7 gap-0.5">
                 {DIAS_SEMANA.map((d) => (
                     <div key={d} className="text-center text-xs font-medium text-gray-400 dark:text-gray-500 py-2">
                         {d}
@@ -530,10 +530,9 @@ function Calendario({ ano, mes, eventos, onDiaClick, onPrevMes, onProxMes }) {
             </div>
 
             {/* Células */}
-            <div className="grid grid-cols-7">
+            <div className="grid grid-cols-7 gap-0.5 mt-0.5">
                 {cells.map((dia, i) => {
-                    if (!dia)
-                        return <div key={`empty-${i}`} className="h-16 border-r border-b border-gray-50 dark:border-gray-700/50 last:border-r-0" />;
+                    if (!dia) return <div key={`empty-${i}`} className="h-11" />;
                     const dataStr = `${ano}-${padZero(mes + 1)}-${padZero(dia)}`;
                     const eventosDia = eventosMap[dataStr] || [];
                     const isHoje = dataStr === hojeStr;
@@ -543,35 +542,40 @@ function Calendario({ ano, mes, eventos, onDiaClick, onPrevMes, onProxMes }) {
                             key={dia}
                             onClick={() => onDiaClick(dataStr, dia)}
                             className={clsx(
-                                "h-16 border-r border-b border-gray-50 dark:border-gray-700/50 last:border-r-0 p-1 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-gray-700/30 relative",
-                                (i + 1) % 7 === 0 && "border-r-0",
+                                "h-11 p-1 rounded-lg cursor-pointer transition-colors flex flex-col",
+                                isHoje ? "bg-primary" : "",
+                                !isHoje && eventosDia.length > 0 ? "bg-blue-100 dark:bg-blue-500/15" : "",
+                                !isHoje && eventosDia.length === 0 ? "hover:bg-gray-100 dark:hover:bg-gray-700" : "",
+                                !isHoje && eventosDia.length > 0 ? "hover:bg-blue-200 dark:hover:bg-blue-500/25" : "",
                             )}
                         >
                             <span
                                 className={clsx(
-                                    "text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full",
-                                    isHoje ? "bg-primary text-white" : "text-gray-700 dark:text-gray-300",
+                                    "text-xs font-medium inline-flex items-center justify-center w-6 h-6 rounded-full flex-shrink-0",
+                                    isHoje ? "text-white font-bold" : "text-gray-600 dark:text-gray-300",
                                 )}
                             >
                                 {dia}
                             </span>
-                            <div className="mt-0.5 space-y-0.5 overflow-hidden">
-                                {eventosDia.slice(0, 2).map((ev) => (
-                                    <div
-                                        key={ev.id}
-                                        className="truncate text-[10px] leading-4 px-1 rounded text-white font-medium"
-                                        style={{ background: ev.cor || "#1a56db" }}
-                                    >
-                                        {ev.titulo}
-                                    </div>
-                                ))}
-                                {eventosDia.length > 2 && (
-                                    <div className="text-[10px] text-gray-400 dark:text-gray-500 pl-1">+{eventosDia.length - 2}</div>
-                                )}
-                            </div>
+                            {eventosDia.length > 0 && !isHoje && (
+                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500 dark:bg-blue-400 mt-0.5 mx-auto" />
+                            )}
+                            {eventosDia.length > 1 && (
+                                <span className="text-[9px] text-blue-600 dark:text-blue-300 text-center leading-none">{eventosDia.length}</span>
+                            )}
                         </div>
                     );
                 })}
+            </div>
+
+            {/* Legenda */}
+            <div className="mt-3 flex items-center gap-4 text-xs text-gray-400 dark:text-gray-500">
+                <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-blue-100 dark:bg-blue-500/15 inline-block" /> Evento
+                </span>
+                <span className="flex items-center gap-1">
+                    <span className="w-3 h-3 rounded bg-primary inline-block" /> Hoje
+                </span>
             </div>
         </div>
     );
@@ -589,13 +593,13 @@ function ListaEventos({ eventos, diaSelecionado, tipo, onEventoClick, onNovoEven
               .slice(0, 20);
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex flex-col h-full">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-gray-700">
-                <h3 className="font-semibold text-gray-900 dark:text-white text-sm">
+        <div className="flex flex-col h-full">
+            <div className="flex items-center justify-between mb-3">
+                <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                     {diaSelecionado
                         ? `${new Date(diaSelecionado + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}`
                         : "Próximos eventos"}
-                </h3>
+                </p>
                 {diaSelecionado && (
                     <button
                         onClick={() => onNovoEventoDia(diaSelecionado)}
@@ -606,7 +610,7 @@ function ListaEventos({ eventos, diaSelecionado, tipo, onEventoClick, onNovoEven
                     </button>
                 )}
             </div>
-            <div className="flex-1 overflow-y-auto divide-y divide-gray-50 dark:divide-gray-700/50">
+            <div className="flex-1 overflow-y-auto space-y-2 max-h-[360px] pr-1">
                 {eventosParaExibir.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-32 text-gray-400 dark:text-gray-500">
                         <CalendarDays className="w-8 h-8 mb-2 opacity-50" />
@@ -617,22 +621,20 @@ function ListaEventos({ eventos, diaSelecionado, tipo, onEventoClick, onNovoEven
                         <button
                             key={ev.id}
                             onClick={() => onEventoClick(ev)}
-                            className="w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors"
+                            className="w-full text-left flex items-start gap-3 p-2.5 rounded-xl bg-gray-50 dark:bg-gray-700/40 hover:bg-gray-100 dark:hover:bg-gray-700/60 transition-colors"
                         >
-                            <div className="flex items-start gap-3">
-                                <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5" style={{ background: ev.cor || "#1a56db" }} />
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{ev.titulo}</p>
-                                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
-                                        {!diaSelecionado && <span>{formatarDataBR(ev.data_inicio)} · </span>}
-                                        {ev.dia_todo
-                                            ? "Dia todo"
-                                            : ev.hora_inicio
-                                              ? `${ev.hora_inicio}${ev.hora_fim ? ` – ${ev.hora_fim}` : ""}`
-                                              : "Sem horário"}
-                                    </p>
-                                    {ev.local && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">📍 {ev.local}</p>}
-                                </div>
+                            <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 mt-1.5" style={{ background: ev.cor || "#1a56db" }} />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{ev.titulo}</p>
+                                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                                    {!diaSelecionado && <span>{formatarDataBR(ev.data_inicio)} · </span>}
+                                    {ev.dia_todo
+                                        ? "Dia todo"
+                                        : ev.hora_inicio
+                                          ? `${ev.hora_inicio}${ev.hora_fim ? ` – ${ev.hora_fim}` : ""}`
+                                          : "Sem horário"}
+                                </p>
+                                {ev.local && <p className="text-xs text-gray-400 dark:text-gray-500 truncate">📍 {ev.local}</p>}
                             </div>
                         </button>
                     ))
@@ -1265,32 +1267,40 @@ export default function AgendaPage() {
                 <div className="mt-6">
                     {/* Tab: Calendário */}
                     {viewTab === "Calendário" && (
-                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                            <div className="xl:col-span-2">
-                                {carregando ? (
-                                    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-center h-80">
-                                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                        <div className="card">
+                            {carregando ? (
+                                <div className="flex items-center justify-center h-80">
+                                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : (
+                                <div className="flex flex-col lg:flex-row lg:gap-6">
+                                    {/* Coluna esquerda: grade do calendário */}
+                                    <div className="flex-1 min-w-0">
+                                        <Calendario
+                                            ano={ano}
+                                            mes={mes}
+                                            eventos={eventos}
+                                            onDiaClick={handleDiaClick}
+                                            onPrevMes={prevMes}
+                                            onProxMes={proxMes}
+                                        />
                                     </div>
-                                ) : (
-                                    <Calendario
-                                        ano={ano}
-                                        mes={mes}
-                                        eventos={eventos}
-                                        onDiaClick={handleDiaClick}
-                                        onPrevMes={prevMes}
-                                        onProxMes={proxMes}
-                                    />
-                                )}
-                            </div>
-                            <div className="xl:col-span-1 min-h-[400px]">
-                                <ListaEventos
-                                    eventos={eventos}
-                                    diaSelecionado={diaSelecionado}
-                                    tipo={aba}
-                                    onEventoClick={setEventoDetalhe}
-                                    onNovoEventoDia={handleNovoEventoDia}
-                                />
-                            </div>
+
+                                    {/* Divisor vertical (desktop) */}
+                                    <div className="hidden lg:block w-px bg-gray-100 dark:bg-gray-700/50 self-stretch" />
+
+                                    {/* Coluna direita: lista de eventos */}
+                                    <div className="flex-1 min-w-0 mt-4 lg:mt-0">
+                                        <ListaEventos
+                                            eventos={eventos}
+                                            diaSelecionado={diaSelecionado}
+                                            tipo={aba}
+                                            onEventoClick={setEventoDetalhe}
+                                            onNovoEventoDia={handleNovoEventoDia}
+                                        />
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
