@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
     ChevronLeft,
     ChevronRight,
@@ -23,6 +23,7 @@ import {
     Users,
     Bell,
     MessageSquare,
+    List,
 } from "lucide-react";
 import api from "../../services/api";
 import clsx from "clsx";
@@ -946,16 +947,49 @@ function SolicitacoesPanel({ igrejaSlug }) {
     );
 }
 
+// ─── StatCard ─────────────────────────────────────────────────────────────────
+const CARD_ACCENTS = {
+    blue: "from-blue-400/80 to-blue-300/60",
+    purple: "from-purple-400/80 to-purple-300/60",
+    emerald: "from-emerald-400/80 to-emerald-300/60",
+    amber: "from-amber-400/80 to-amber-300/60",
+};
+
+function StatCardAgenda({ icon: Icon, label, value, sub, color = "blue" }) {
+    const iconColors = {
+        blue: "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400",
+        purple: "bg-purple-50 dark:bg-purple-500/10 text-purple-600 dark:text-purple-400",
+        emerald: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+        amber: "bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    };
+    return (
+        <div className="card-stat flex items-center gap-4 relative overflow-hidden">
+            <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${CARD_ACCENTS[color]}`} />
+            <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 mt-1 ${iconColors[color]}`}>
+                <Icon className="w-5 h-5" />
+            </div>
+            <div className="min-w-0 flex-1 pt-1">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white tabular-nums">{value}</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400 leading-tight">{label}</p>
+                {sub && <p className="text-xs text-gray-400 dark:text-gray-500 truncate mt-0.5">{sub}</p>}
+            </div>
+        </div>
+    );
+}
+
 // ─── Página principal ────────────────────────────────────────────────────────
 export default function AgendaPage() {
     const { usuario, loading: authLoading } = useAuth();
     const temAgenda = !!usuario?.igreja?.plano_recursos?.agenda;
     const temAgendaPublica = !!usuario?.igreja?.plano_recursos?.agenda_publica;
     const igrejaSlug = usuario?.igreja?.slug;
+    const primeiroNome = usuario?.nome?.split(" ")[0];
 
     const hoje = new Date();
+    const hojeStr = `${hoje.getFullYear()}-${padZero(hoje.getMonth() + 1)}-${padZero(hoje.getDate())}`;
+
     const [aba, setAba] = useState("pastoral");
-    const [subAba, setSubAba] = useState("calendario"); // "calendario" | "solicitacoes"
+    const [viewTab, setViewTab] = useState("Calendário"); // "Calendário" | "Lista" | "Solicitações"
     const [ano, setAno] = useState(hoje.getFullYear());
     const [mes, setMes] = useState(hoje.getMonth());
     const [eventos, setEventos] = useState([]);
@@ -984,8 +1018,12 @@ export default function AgendaPage() {
         if (!temAgenda) return;
         carregarEventos();
         setDiaSelecionado(null);
-        setSubAba("calendario");
     }, [carregarEventos, temAgenda]);
+
+    // Resetar sub-aba ao trocar aba principal
+    useEffect(() => {
+        setViewTab("Calendário");
+    }, [aba]);
 
     function prevMes() {
         if (mes === 0) {
@@ -1027,23 +1065,43 @@ export default function AgendaPage() {
         carregarEventos();
     }
 
-    const abaConfig = {
-        pastoral: { label: "Agenda Pastoral", icon: BookOpen, cor: "from-purple-600 to-indigo-600" },
-        evento: { label: "Eventos da Igreja", icon: Church, cor: "from-blue-600 to-cyan-600" },
-    };
+    // ── Estatísticas derivadas ──────────────────────────────────────────────
+    const stats = useMemo(() => {
+        const mesAtualStr = `${hoje.getFullYear()}-${padZero(hoje.getMonth() + 1)}`;
+        const proxMesDate = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+        const proxMesStr = `${proxMesDate.getFullYear()}-${padZero(proxMesDate.getMonth() + 1)}`;
+
+        const inicioSemana = new Date(hoje);
+        inicioSemana.setDate(hoje.getDate() - hoje.getDay());
+        const fimSemana = new Date(inicioSemana);
+        fimSemana.setDate(inicioSemana.getDate() + 6);
+        const swStr = `${inicioSemana.getFullYear()}-${padZero(inicioSemana.getMonth() + 1)}-${padZero(inicioSemana.getDate())}`;
+        const ewStr = `${fimSemana.getFullYear()}-${padZero(fimSemana.getMonth() + 1)}-${padZero(fimSemana.getDate())}`;
+
+        const eventoHoje = eventos.filter((e) => e.data_inicio === hojeStr).length;
+        const eventosSemana = eventos.filter((e) => e.data_inicio >= swStr && e.data_inicio <= ewStr).length;
+        const eventosMesAtual = eventos.filter((e) => e.data_inicio?.startsWith(mesAtualStr)).length;
+        const eventosProxMes = eventos.filter((e) => e.data_inicio?.startsWith(proxMesStr)).length;
+
+        const nomeMesAtual = MESES[hoje.getMonth()];
+        const nomeMesProx = MESES[proxMesDate.getMonth()];
+
+        const proxEventos = [...eventos].filter((e) => e.data_inicio >= hojeStr).sort((a, b) => a.data_inicio.localeCompare(b.data_inicio));
+        const proxTitulo = proxEventos[0]?.titulo || null;
+
+        return { eventoHoje, eventosSemana, eventosMesAtual, eventosProxMes, nomeMesAtual, nomeMesProx, proxTitulo };
+    }, [eventos, hojeStr, hoje]);
+
+    const VIEW_TABS = temAgendaPublica && aba === "evento" ? ["Calendário", "Lista", "Solicitações"] : ["Calendário", "Lista"];
 
     // ── Plano sem acesso à Agenda ────────────────────────────────────────────
     if (!authLoading && !temAgenda) {
         return (
             <div className="space-y-6">
                 <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Calendar className="w-7 h-7 text-primary" />
-                        Agenda
-                    </h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Gerencie os compromissos pastorais e os eventos da igreja</p>
+                    <h1 className="page-title">Agenda</h1>
+                    <p className="page-subtitle">Gerencie os compromissos pastorais e os eventos da igreja</p>
                 </div>
-
                 <RecursoBloqueado
                     titulo="Agenda Pastoral & Eventos da Igreja"
                     descricao="Organize compromissos pastorais e eventos com calendário visual interativo, notificações automáticas e integração com Google Calendar."
@@ -1063,102 +1121,37 @@ export default function AgendaPage() {
 
     return (
         <div className="space-y-6">
-            {/* Cabeçalho */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                        <Calendar className="w-7 h-7 text-primary" />
-                        Agenda
-                    </h1>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Gerencie os compromissos pastorais e os eventos da igreja</p>
-                </div>
-                <div className="flex items-center gap-2 flex-wrap">
-                    {/* Botão Compartilhar Agenda Pública — apenas Profissional/Premium e aba de eventos */}
-                    {temAgendaPublica && aba === "evento" && igrejaSlug && (
-                        <a
-                            href={`/agenda/${igrejaSlug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            title="Abrir página pública da agenda"
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
-                        >
-                            <Share2 className="w-4 h-4" />
-                            Agenda Pública
-                        </a>
-                    )}
-                    <button
-                        onClick={() => window.open(`/api/agenda/exportar-ics?tipo=${aba}&mes=${mesStr}`, "_blank")}
-                        title="Exportar como .ics (Google Calendar / Apple Calendar)"
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm font-medium hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                    >
-                        <Download className="w-4 h-4" />
-                        Exportar ICS
-                    </button>
-                    {subAba === "calendario" && (
-                        <button
-                            onClick={() => {
-                                setFormDataInicial("");
-                                setModalNovo(true);
-                            }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm"
-                        >
-                            <Plus className="w-4 h-4" />
-                            Novo {aba === "pastoral" ? "Compromisso" : "Evento"}
-                        </button>
-                    )}
-                </div>
+            {/* ── Cabeçalho ───────────────────────────────────────────────── */}
+            <div>
+                <h1 className="page-title">Agenda</h1>
+                <p className="page-subtitle">
+                    {primeiroNome
+                        ? `${primeiroNome}, gerencie os compromissos e eventos da sua igreja.`
+                        : "Gerencie os compromissos pastorais e os eventos da igreja."}
+                </p>
             </div>
 
-            {/* Abas principais */}
-            <div className="flex gap-1 bg-gray-100 dark:bg-gray-700/60 p-1 rounded-xl w-fit">
-                {Object.entries(abaConfig).map(([key, cfg]) => (
-                    <button
-                        key={key}
-                        onClick={() => setAba(key)}
-                        className={clsx(
-                            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                            aba === key
-                                ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
-                        )}
-                    >
-                        <cfg.icon className="w-4 h-4" />
-                        {cfg.label}
-                    </button>
-                ))}
+            {/* ── Cards de resumo ──────────────────────────────────────────── */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCardAgenda
+                    icon={Calendar}
+                    label="Hoje"
+                    value={stats.eventoHoje}
+                    sub={stats.eventoHoje > 0 ? stats.proxTitulo : "Nenhum hoje"}
+                    color="blue"
+                />
+                <StatCardAgenda
+                    icon={CalendarDays}
+                    label="Esta Semana"
+                    value={stats.eventosSemana}
+                    sub={stats.eventosSemana > 0 ? `${stats.eventosSemana} evento${stats.eventosSemana !== 1 ? "s" : ""}` : "Nenhum esta semana"}
+                    color="purple"
+                />
+                <StatCardAgenda icon={Church} label={`Em ${stats.nomeMesAtual}`} value={stats.eventosMesAtual} sub="Mês atual" color="emerald" />
+                <StatCardAgenda icon={Clock} label={`Em ${stats.nomeMesProx}`} value={stats.eventosProxMes} sub="Próximo mês" color="amber" />
             </div>
 
-            {/* Sub-abas da aba Eventos — Calendário | Solicitações */}
-            {aba === "evento" && temAgendaPublica && (
-                <div className="flex gap-1 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 p-1 rounded-xl w-fit">
-                    <button
-                        onClick={() => setSubAba("calendario")}
-                        className={clsx(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                            subAba === "calendario"
-                                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
-                        )}
-                    >
-                        <CalendarDays className="w-4 h-4" />
-                        Calendário
-                    </button>
-                    <button
-                        onClick={() => setSubAba("solicitacoes")}
-                        className={clsx(
-                            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
-                            subAba === "solicitacoes"
-                                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
-                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
-                        )}
-                    >
-                        <Bell className="w-4 h-4" />
-                        Solicitações
-                    </button>
-                </div>
-            )}
-
-            {/* Aviso de notificações — apenas pastoral */}
+            {/* ── Aviso pastoral ──────────────────────────────────────────── */}
             {aba === "pastoral" && (
                 <div className="flex items-start gap-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 rounded-xl px-4 py-3 text-sm text-purple-700 dark:text-purple-300">
                     <MessageCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
@@ -1170,35 +1163,225 @@ export default function AgendaPage() {
                 </div>
             )}
 
-            {/* Painel de Solicitações (aba evento + sub-aba solicitacoes) */}
-            {aba === "evento" && subAba === "solicitacoes" && <SolicitacoesPanel igrejaSlug={igrejaSlug} />}
-
-            {/* Layout calendário + lista (visível apenas quando sub-aba = calendário) */}
-            {subAba === "calendario" && (
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                    {/* Calendário — ocupa 2 colunas */}
-                    <div className="xl:col-span-2">
-                        {carregando ? (
-                            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-center h-80">
-                                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                            </div>
-                        ) : (
-                            <Calendario ano={ano} mes={mes} eventos={eventos} onDiaClick={handleDiaClick} onPrevMes={prevMes} onProxMes={proxMes} />
-                        )}
+            {/* ── Toolbar: abas + ações ────────────────────────────────────── */}
+            <div>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-gray-200 dark:border-gray-700 pb-0">
+                    {/* Abas de visualização */}
+                    <div className="flex">
+                        {VIEW_TABS.map((t) => (
+                            <button
+                                key={t}
+                                onClick={() => setViewTab(t)}
+                                className={`px-5 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
+                                    viewTab === t
+                                        ? "border-primary text-primary dark:text-primary-300"
+                                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                }`}
+                            >
+                                {t === "Calendário" && <span className="mr-1.5">📅</span>}
+                                {t === "Lista" && <span className="mr-1.5">📋</span>}
+                                {t === "Solicitações" && <Bell className="w-3.5 h-3.5 inline mr-1.5" />}
+                                {t}
+                            </button>
+                        ))}
                     </div>
 
-                    {/* Painel lateral */}
-                    <div className="xl:col-span-1 min-h-[400px]">
-                        <ListaEventos
-                            eventos={eventos}
-                            diaSelecionado={diaSelecionado}
-                            tipo={aba}
-                            onEventoClick={setEventoDetalhe}
-                            onNovoEventoDia={handleNovoEventoDia}
-                        />
+                    {/* Ações à direita */}
+                    <div className="flex items-center gap-2 pb-2 sm:pb-0 flex-wrap sm:flex-nowrap">
+                        {/* Seletor de tipo: Pastoral / Eventos */}
+                        <div className="flex bg-gray-100 dark:bg-gray-700/60 rounded-lg p-0.5">
+                            <button
+                                onClick={() => setAba("pastoral")}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                                    aba === "pastoral"
+                                        ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+                                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                }`}
+                            >
+                                <BookOpen className="w-3.5 h-3.5" />
+                                Pastoral
+                            </button>
+                            <button
+                                onClick={() => setAba("evento")}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${
+                                    aba === "evento"
+                                        ? "bg-white dark:bg-gray-800 text-gray-900 dark:text-white shadow-sm"
+                                        : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+                                }`}
+                            >
+                                <Church className="w-3.5 h-3.5" />
+                                Eventos
+                            </button>
+                        </div>
+
+                        {/* Navegação de mês */}
+                        <div className="flex items-center gap-0.5 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800">
+                            <button
+                                onClick={prevMes}
+                                className="p-1.5 rounded-l-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+                            >
+                                <ChevronLeft className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="px-2 text-xs font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                                {MESES[mes]} {ano}
+                            </span>
+                            <button
+                                onClick={proxMes}
+                                className="p-1.5 rounded-r-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+                            >
+                                <ChevronRight className="w-3.5 h-3.5" />
+                            </button>
+                        </div>
+
+                        {/* Divisor */}
+                        <div className="hidden sm:block w-px h-5 bg-gray-200 dark:bg-gray-700" />
+
+                        {/* Botões de ação */}
+                        <div className="flex gap-1.5">
+                            {temAgendaPublica && aba === "evento" && igrejaSlug && (
+                                <a
+                                    href={`/agenda/${igrejaSlug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                                >
+                                    <Share2 className="w-3.5 h-3.5" />
+                                    Pública
+                                </a>
+                            )}
+                            <button
+                                onClick={() => window.open(`/api/agenda/exportar-ics?tipo=${aba}&mes=${mesStr}`, "_blank")}
+                                title="Exportar como .ics (Google Calendar / Apple Calendar)"
+                                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-medium bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 transition-colors"
+                            >
+                                <Download className="w-3.5 h-3.5" />
+                                ICS
+                            </button>
+                            {viewTab !== "Solicitações" && (
+                                <button
+                                    onClick={() => {
+                                        setFormDataInicial("");
+                                        setModalNovo(true);
+                                    }}
+                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold bg-primary hover:bg-primary-700 text-white transition-colors shadow-sm"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                    Novo {aba === "pastoral" ? "Compromisso" : "Evento"}
+                                </button>
+                            )}
+                        </div>
                     </div>
                 </div>
-            )}
+
+                {/* ── Conteúdo das abas ─────────────────────────────────── */}
+                <div className="mt-6">
+                    {/* Tab: Calendário */}
+                    {viewTab === "Calendário" && (
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                            <div className="xl:col-span-2">
+                                {carregando ? (
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-center h-80">
+                                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                                    </div>
+                                ) : (
+                                    <Calendario
+                                        ano={ano}
+                                        mes={mes}
+                                        eventos={eventos}
+                                        onDiaClick={handleDiaClick}
+                                        onPrevMes={prevMes}
+                                        onProxMes={proxMes}
+                                    />
+                                )}
+                            </div>
+                            <div className="xl:col-span-1 min-h-[400px]">
+                                <ListaEventos
+                                    eventos={eventos}
+                                    diaSelecionado={diaSelecionado}
+                                    tipo={aba}
+                                    onEventoClick={setEventoDetalhe}
+                                    onNovoEventoDia={handleNovoEventoDia}
+                                />
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Tab: Lista */}
+                    {viewTab === "Lista" && (
+                        <div>
+                            {carregando ? (
+                                <div className="flex justify-center py-12">
+                                    <div className="w-7 h-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : eventos.length === 0 ? (
+                                <div className="text-center py-16 space-y-3">
+                                    <CalendarDays className="w-14 h-14 text-gray-200 dark:text-gray-700 mx-auto" />
+                                    <p className="text-gray-500 dark:text-gray-400 font-medium">
+                                        Nenhum evento em {MESES[mes]} {ano}.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3">
+                                    {[...eventos]
+                                        .sort((a, b) => {
+                                            if (a.data_inicio !== b.data_inicio) return a.data_inicio.localeCompare(b.data_inicio);
+                                            return (a.hora_inicio || "").localeCompare(b.hora_inicio || "");
+                                        })
+                                        .map((ev) => (
+                                            <button
+                                                key={ev.id}
+                                                onClick={() => setEventoDetalhe(ev)}
+                                                className="w-full text-left bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 hover:border-gray-200 dark:hover:border-gray-600 hover:shadow-sm transition-all"
+                                            >
+                                                <div className="flex items-start gap-3">
+                                                    <div
+                                                        className="w-3 h-3 rounded-full flex-shrink-0 mt-1.5"
+                                                        style={{ background: ev.cor || "#1a56db" }}
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-semibold text-gray-900 dark:text-white text-sm">{ev.titulo}</p>
+                                                        <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+                                                            <span className="flex items-center gap-1">
+                                                                <Calendar className="w-3.5 h-3.5" />
+                                                                {formatarDataBR(ev.data_inicio)}
+                                                                {ev.data_fim && ev.data_fim !== ev.data_inicio
+                                                                    ? ` até ${formatarDataBR(ev.data_fim)}`
+                                                                    : ""}
+                                                            </span>
+                                                            {!ev.dia_todo && ev.hora_inicio && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <Clock className="w-3.5 h-3.5" />
+                                                                    {ev.hora_inicio}
+                                                                    {ev.hora_fim ? ` – ${ev.hora_fim}` : ""}
+                                                                </span>
+                                                            )}
+                                                            {ev.dia_todo && <span className="text-gray-400">Dia todo</span>}
+                                                            {ev.local && (
+                                                                <span className="flex items-center gap-1">
+                                                                    <MapPin className="w-3.5 h-3.5" />
+                                                                    {ev.local}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        {ev.descricao && (
+                                                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 line-clamp-1">
+                                                                {ev.descricao}
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <Pencil className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 flex-shrink-0 mt-1" />
+                                                </div>
+                                            </button>
+                                        ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Tab: Solicitações */}
+                    {viewTab === "Solicitações" && <SolicitacoesPanel igrejaSlug={igrejaSlug} />}
+                </div>
+            </div>
 
             {/* Modais */}
             {(modalNovo || eventoEditando) && (
