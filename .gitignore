@@ -1,6 +1,8 @@
 node_modules/
 .env
 data/
+# Exceção: dados estáticos do site (não são banco/uploads)
+!assembleia-jacuma/frontend/src/data/
 uploads/
 *.log
 .DS_Store
