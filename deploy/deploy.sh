@@ -115,8 +115,8 @@ certbot certonly --standalone -d "$DOMAIN" --non-interactive --agree-tos -m "adm
   { echo "⚠️  SSL não emitido. Verifique se o DNS do domínio aponta para este IP."; systemctl start nginx; exit 1; }
 
 # Emite certificado para o site da Assembleia Jacumã
-certbot certonly --standalone -d "$DOMAIN_JACUMA" -d "www.$DOMAIN_JACUMA" --non-interactive --agree-tos -m "admin@$DOMAIN_JACUMA" || \
-  echo "⚠️  SSL para $DOMAIN_JACUMA não emitido. Verifique se o DNS aponta para este IP e rode: certbot certonly -d $DOMAIN_JACUMA -d www.$DOMAIN_JACUMA"
+certbot certonly --nginx -d "$DOMAIN_JACUMA" -d "www.$DOMAIN_JACUMA" --non-interactive --agree-tos -m "admin@$DOMAIN_JACUMA" || \
+  echo "⚠️  SSL para $DOMAIN_JACUMA não emitido. Verifique se o DNS aponta para este IP e rode: certbot certonly --nginx -d $DOMAIN_JACUMA -d www.$DOMAIN_JACUMA"
 
 # Aplica config NGINX final com SSL (certificado já existe agora)
 echo "[9/9] Aplicando configuração NGINX final (HTTPS)..."
