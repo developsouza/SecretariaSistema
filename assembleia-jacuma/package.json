@@ -1,0 +1,10 @@
+{
+    "name": "assembleia-jacuma",
+    "version": "1.0.0",
+    "description": "Site da Assembleia de Deus em Jacumã",
+    "scripts": {
+        "dev": "npm run dev --prefix frontend",
+        "build": "npm run build --prefix frontend",
+        "preview": "npm run preview --prefix frontend"
+    }
+}

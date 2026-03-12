@@ -379,6 +379,19 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_agenda_igreja_tipo ON agenda_eventos(igreja_id, tipo, data_inicio);
     CREATE INDEX IF NOT EXISTS idx_solicitacoes_igreja ON solicitacoes_agendamento(igreja_id, status);
 
+    -- ─── Contatos do Site Institucional ─────────────────────────────────
+    CREATE TABLE IF NOT EXISTS contatos_site (
+      id         TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+      igreja_id  TEXT NOT NULL REFERENCES igrejas(id) ON DELETE CASCADE,
+      nome       TEXT NOT NULL,
+      email      TEXT NOT NULL,
+      telefone   TEXT,
+      mensagem   TEXT NOT NULL,
+      lido       INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_contatos_site_igreja ON contatos_site(igreja_id, lido);
+
     -- ─── Superadmins (Master/SaaS owner) ─────────────────────────────────
     CREATE TABLE IF NOT EXISTS superadmins (
       id           TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),

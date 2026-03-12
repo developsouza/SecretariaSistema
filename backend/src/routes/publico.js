@@ -405,4 +405,62 @@ router.post(
     },
 );
 
+// ─── POST /api/publico/contato/:slug ─────────────────────────────────────────
+// Formulário de contato público do site institucional da igreja
+const contatoLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000,
+    max: 10,
+    message: { sucesso: false, erro: "Muitas solicitações. Tente novamente em 1 hora." },
+});
+
+router.post(
+    "/contato/:slug",
+    contatoLimiter,
+    [
+        body("nome").trim().notEmpty().withMessage("Nome é obrigatório"),
+        body("email").trim().notEmpty().isEmail().withMessage("E-mail inválido"),
+        body("mensagem").trim().notEmpty().withMessage("Mensagem é obrigatória"),
+    ],
+    (req, res, next) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) {
+                return res.status(400).json({
+                    sucesso: false,
+                    erro: errors
+                        .array()
+                        .map((e) => e.msg)
+                        .join(" • "),
+                });
+            }
+
+            const db = getDb();
+            const slug = req.params.slug.toLowerCase().trim();
+            const igreja = db.prepare("SELECT id FROM igrejas WHERE slug = ? AND ativo = 1").get(slug);
+            if (!igreja) return res.status(404).json({ sucesso: false, erro: "Igreja não encontrada" });
+
+            const { nome, email, telefone, mensagem } = req.body;
+
+            db.prepare(
+                `INSERT INTO contatos_site (id, igreja_id, nome, email, telefone, mensagem)
+                 VALUES (lower(hex(randomblob(16))), ?, ?, ?, ?, ?)`,
+            ).run(igreja.id, nome, email, telefone || null, mensagem);
+
+            // Notificação interna
+            try {
+                db.prepare(
+                    `INSERT INTO notificacoes (id, igreja_id, tipo, titulo, mensagem, dados)
+                     VALUES (lower(hex(randomblob(16))), ?, 'contato_site', ?, ?, ?)`,
+                ).run(igreja.id, "Nova Mensagem de Contato", `${nome} enviou uma mensagem pelo site.`, JSON.stringify({ nome, email }));
+            } catch (e) {
+                console.error("[Contato Site] Erro ao criar notificação:", e.message);
+            }
+
+            res.status(201).json({ sucesso: true, mensagem: "Mensagem enviada com sucesso! Entraremos em contato em breve." });
+        } catch (err) {
+            next(err);
+        }
+    },
+);
+
 module.exports = router;
