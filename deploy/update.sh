@@ -66,18 +66,23 @@ BACKEND_DEPS_MUDOU=false
 BACKEND_MUDOU=false
 FRONTEND_DEPS_MUDOU=false
 FRONTEND_MUDOU=false
+SITE_JACUMA_DEPS_MUDOU=false
+SITE_JACUMA_MUDOU=false
 NGINX_MUDOU=false
 
-echo "$MUDANCAS" | grep -q "^backend/package"      && BACKEND_DEPS_MUDOU=true
-echo "$MUDANCAS" | grep -q "^backend/"             && BACKEND_MUDOU=true
-echo "$MUDANCAS" | grep -q "^frontend/package"     && FRONTEND_DEPS_MUDOU=true
-echo "$MUDANCAS" | grep -q "^frontend/"            && FRONTEND_MUDOU=true
-echo "$MUDANCAS" | grep -q "^deploy/nginx/"        && NGINX_MUDOU=true
+echo "$MUDANCAS" | grep -q "^backend/package"            && BACKEND_DEPS_MUDOU=true
+echo "$MUDANCAS" | grep -q "^backend/"                  && BACKEND_MUDOU=true
+echo "$MUDANCAS" | grep -q "^frontend/package"           && FRONTEND_DEPS_MUDOU=true
+echo "$MUDANCAS" | grep -q "^frontend/"                 && FRONTEND_MUDOU=true
+echo "$MUDANCAS" | grep -q "^assembleia-jacuma/frontend/package" && SITE_JACUMA_DEPS_MUDOU=true
+echo "$MUDANCAS" | grep -q "^assembleia-jacuma/frontend/" && SITE_JACUMA_MUDOU=true
+echo "$MUDANCAS" | grep -q "^deploy/nginx/"              && NGINX_MUDOU=true
 
 echo "  Mudanças detectadas:"
-[ "$BACKEND_MUDOU" = true ]  && echo "    • Backend  (deps: $BACKEND_DEPS_MUDOU)"
-[ "$FRONTEND_MUDOU" = true ] && echo "    • Frontend (deps: $FRONTEND_DEPS_MUDOU)"
-[ "$NGINX_MUDOU" = true ]    && echo "    • Config NGINX"
+[ "$BACKEND_MUDOU" = true ]      && echo "    • Backend  (deps: $BACKEND_DEPS_MUDOU)"
+[ "$FRONTEND_MUDOU" = true ]     && echo "    • Frontend (deps: $FRONTEND_DEPS_MUDOU)"
+[ "$SITE_JACUMA_MUDOU" = true ]  && echo "    • Site Jacumã (deps: $SITE_JACUMA_DEPS_MUDOU)"
+[ "$NGINX_MUDOU" = true ]        && echo "    • Config NGINX"
 echo ""
 
 # ── Backend ───────────────────────────────────────────────────────────────────
@@ -136,6 +141,22 @@ if [ "$FRONTEND_MUDOU" = true ]; then
   echo "  ✅ Frontend reconstruído."
 else
   echo "[3/4] Frontend sem alterações — pulando."
+fi
+
+# ── Site Assembleia Jacumã ─────────────────────────────────────────────────
+if [ "$SITE_JACUMA_MUDOU" = true ]; then
+  echo "[3b/4] Reconstruindo site Assembleia Jacumã..."
+  cd "$APP_DIR/assembleia-jacuma/frontend"
+
+  if [ "$SITE_JACUMA_DEPS_MUDOU" = true ]; then
+    echo "  → package.json alterado — reinstalando dependências..."
+    npm ci
+  fi
+
+  VITE_SAAS_API_URL=https://secretariaigreja.g3tsistemas.com.br/api npm run build
+  echo "  ✅ Site Jacumã reconstruído."
+else
+  echo "[3b/4] Site Jacumã sem alterações — pulando."
 fi
 
 # ── NGINX (reload gracioso, sem derrubar conexões ativas) ─────────────────────

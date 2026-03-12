@@ -13,6 +13,7 @@ set -e
 APP_DIR="/var/www/gestao-secretaria"
 REPO_URL="https://github.com/developsouza/SecretariaSistema.git"  # Ajuste para seu repositório
 DOMAIN="secretariaigreja.g3tsistemas.com.br"
+DOMAIN_JACUMA="adjacuma.com.br"
 
 echo "════════════════════════════════════════════════"
 echo "  Gestão Secretaria — Script de Deploy"
@@ -64,10 +65,16 @@ npm run migrate 2>/dev/null || true
 # Para banco novo, execute manualmente: npm run seed
 
 # ── Frontend ──────────────────────────────────────────────────────────────────
-echo "[6/9] Construindo frontend..."
+echo "[6/9] Construindo frontend (painel SaaS)..."
 cd "$APP_DIR/frontend"
 npm ci
 npm run build
+
+# ── Site Assembleia Jacumã ────────────────────────────────────────────────────
+echo "[6b/9] Construindo site Assembleia Jacumã..."
+cd "$APP_DIR/assembleia-jacuma/frontend"
+npm ci
+VITE_SAAS_API_URL="https://$DOMAIN/api" npm run build
 
 # ── NGINX (config HTTP provisória para o Certbot validar o domínio) ────────────
 echo "[7/9] Configurando NGINX (provisório HTTP para emitir SSL)..."
@@ -107,9 +114,15 @@ systemctl stop nginx
 certbot certonly --standalone -d "$DOMAIN" --non-interactive --agree-tos -m "admin@$DOMAIN" || \
   { echo "⚠️  SSL não emitido. Verifique se o DNS do domínio aponta para este IP."; systemctl start nginx; exit 1; }
 
+# Emite certificado para o site da Assembleia Jacumã
+certbot certonly --standalone -d "$DOMAIN_JACUMA" -d "www.$DOMAIN_JACUMA" --non-interactive --agree-tos -m "admin@$DOMAIN_JACUMA" || \
+  echo "⚠️  SSL para $DOMAIN_JACUMA não emitido. Verifique se o DNS aponta para este IP e rode: certbot certonly -d $DOMAIN_JACUMA -d www.$DOMAIN_JACUMA"
+
 # Aplica config NGINX final com SSL (certificado já existe agora)
 echo "[9/9] Aplicando configuração NGINX final (HTTPS)..."
 cp "$APP_DIR/deploy/nginx/secretariasistema.conf" /etc/nginx/sites-available/gestao-secretaria
+cp "$APP_DIR/deploy/nginx/adjacuma.conf" /etc/nginx/sites-available/adjacuma
+ln -sf /etc/nginx/sites-available/adjacuma /etc/nginx/sites-enabled/adjacuma
 nginx -t
 systemctl start nginx
 
@@ -120,6 +133,7 @@ echo "  ✅ Deploy concluído!"
 echo "════════════════════════════════════════════════"
 echo "  API:      https://$DOMAIN/api/health"
 echo "  Sistema:  https://$DOMAIN"
+echo "  Site:     https://www.$DOMAIN_JACUMA"
 echo ""
 echo "  Status do serviço:"
 systemctl status gestao-secretaria --no-pager -l
