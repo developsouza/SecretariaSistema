@@ -9,6 +9,12 @@ const preCadastroLimiter = rateLimit({
     message: { error: "Muitas solicitações. Tente novamente em 1 hora." },
 });
 
+const agendamentoLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hora
+    max: 5,
+    message: { error: "Muitas solicitações de agendamento. Tente novamente em 1 hora." },
+});
+
 // ─── GET /api/publico/planos ──────────────────────────────────────────────
 router.get("/planos", (req, res, next) => {
     try {
@@ -234,6 +240,162 @@ router.post(
                 );
             } catch (e) {
                 console.error("[PreCadastro] Erro ao criar notificação:", e.message);
+            }
+
+            res.status(201).json({ ok: true, id });
+        } catch (err) {
+            next(err);
+        }
+    },
+);
+
+// ─── GET /api/publico/agenda/:slug ────────────────────────────────────────
+// Retorna eventos públicos da igreja (tipo='evento' apenas, planos Profissional/Premium)
+router.get("/agenda/:slug", (req, res, next) => {
+    try {
+        const db = getDb();
+        const slug = req.params.slug.toLowerCase().trim();
+
+        const igreja = db
+            .prepare(
+                `SELECT i.id, i.nome, i.nome_curto, i.logo_url, i.cor_primaria, i.cor_secundaria,
+                        i.cor_texto, i.cidade, i.estado, i.slug, i.pastor_nome, i.pastor_titulo,
+                        i.denominacao, i.site,
+                        p.nome AS plano_nome
+                 FROM igrejas i
+                 LEFT JOIN planos p ON p.id = i.plano_id
+                 WHERE i.slug = ? AND i.ativo = 1`,
+            )
+            .get(slug);
+
+        if (!igreja) return res.status(404).json({ error: "Igreja não encontrada" });
+
+        if (!["Profissional", "Premium"].includes(igreja.plano_nome)) {
+            return res.status(403).json({ error: "Agenda pública disponível apenas nos planos Profissional e Premium" });
+        }
+
+        const { mes, data_inicio, data_fim } = req.query;
+        let where = "WHERE e.igreja_id = ? AND e.tipo = 'evento'";
+        const params = [igreja.id];
+
+        if (mes) {
+            where += " AND strftime('%Y-%m', e.data_inicio) = ?";
+            params.push(mes);
+        } else if (data_inicio && data_fim) {
+            where += " AND e.data_inicio BETWEEN ? AND ?";
+            params.push(data_inicio, data_fim);
+        } else {
+            // Padrão: próximos 90 dias
+            where += " AND e.data_inicio >= date('now') AND e.data_inicio <= date('now', '+90 days')";
+        }
+
+        const eventos = db
+            .prepare(
+                `SELECT id, titulo, descricao, local, data_inicio, hora_inicio,
+                        data_fim, hora_fim, cor, dia_todo, recorrente, recorrencia
+                 FROM agenda_eventos e
+                 ${where}
+                 ORDER BY e.data_inicio ASC, e.hora_inicio ASC`,
+            )
+            .all(...params);
+
+        const { nome, nome_curto, logo_url, cor_primaria, cor_secundaria, cor_texto, cidade, estado, pastor_nome, pastor_titulo, denominacao, site } =
+            igreja;
+        res.json({
+            igreja: {
+                nome,
+                nome_curto,
+                logo_url,
+                cor_primaria,
+                cor_secundaria,
+                cor_texto,
+                cidade,
+                estado,
+                pastor_nome,
+                pastor_titulo,
+                denominacao,
+                site,
+                slug,
+            },
+            eventos,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── POST /api/publico/agenda/:slug/solicitar ─────────────────────────────
+// Envio público de solicitação de agendamento de evento
+router.post(
+    "/agenda/:slug/solicitar",
+    agendamentoLimiter,
+    [
+        body("nome").trim().notEmpty().withMessage("Nome é obrigatório"),
+        body("celular").trim().notEmpty().withMessage("Celular é obrigatório"),
+        body("titulo").trim().notEmpty().withMessage("Título do evento é obrigatório"),
+        body("data_inicio").trim().notEmpty().isISO8601().withMessage("Data de início inválida"),
+        body("email").optional({ checkFalsy: true }).isEmail().withMessage("E-mail inválido"),
+    ],
+    (req, res, next) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+            const db = getDb();
+            const slug = req.params.slug.toLowerCase().trim();
+
+            const igreja = db
+                .prepare(
+                    `SELECT i.id, i.nome, p.nome AS plano_nome
+                     FROM igrejas i
+                     LEFT JOIN planos p ON p.id = i.plano_id
+                     WHERE i.slug = ? AND i.ativo = 1`,
+                )
+                .get(slug);
+
+            if (!igreja) return res.status(404).json({ error: "Igreja não encontrada" });
+            if (!["Profissional", "Premium"].includes(igreja.plano_nome)) {
+                return res.status(403).json({ error: "Recurso não disponível" });
+            }
+
+            const { nome, email, celular, whatsapp, titulo, descricao, local, data_inicio, hora_inicio, data_fim, hora_fim } = req.body;
+
+            const id = require("crypto").randomBytes(16).toString("hex");
+            db.prepare(
+                `INSERT INTO solicitacoes_agendamento
+                 (id, igreja_id, nome, email, celular, whatsapp, titulo, descricao, local,
+                  data_inicio, hora_inicio, data_fim, hora_fim)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ).run(
+                id,
+                igreja.id,
+                nome,
+                email || null,
+                celular,
+                whatsapp || null,
+                titulo,
+                descricao || null,
+                local || null,
+                data_inicio,
+                hora_inicio || null,
+                data_fim || null,
+                hora_fim || null,
+            );
+
+            // Notificação interna para os administradores da igreja
+            try {
+                const dataFormatada = data_inicio.split("-").reverse().join("/");
+                db.prepare(
+                    `INSERT INTO notificacoes (id, igreja_id, tipo, titulo, mensagem, dados)
+                     VALUES (lower(hex(randomblob(16))), ?, 'solicitacao_agendamento', ?, ?, ?)`,
+                ).run(
+                    igreja.id,
+                    "Nova Solicitação de Agendamento",
+                    `${nome} solicitou agendamento de "${titulo}" para ${dataFormatada}.`,
+                    JSON.stringify({ solicitacao_id: id, nome, titulo, data_inicio }),
+                );
+            } catch (e) {
+                console.error("[Solicitação] Erro ao criar notificação:", e.message);
             }
 
             res.status(201).json({ ok: true, id });

@@ -17,6 +17,12 @@ import {
     Church,
     ExternalLink,
     Download,
+    Share2,
+    CheckCircle,
+    XCircle,
+    Users,
+    Bell,
+    MessageSquare,
 } from "lucide-react";
 import api from "../../services/api";
 import clsx from "clsx";
@@ -635,13 +641,321 @@ function ListaEventos({ eventos, diaSelecionado, tipo, onEventoClick, onNovoEven
     );
 }
 
+// ─── Painel de Solicitações de Agendamento ───────────────────────────────────
+function SolicitacoesPanel({ igrejaSlug }) {
+    const [filtro, setFiltro] = useState("pendente");
+    const [solicitacoes, setSolicitacoes] = useState([]);
+    const [carregando, setCarregando] = useState(false);
+    const [processando, setProcessando] = useState(null);
+    const [modalReprovar, setModalReprovar] = useState(null); // solicitação selecionada para reprovar
+    const [motivo, setMotivo] = useState("");
+    const [whatsappUrl, setWhatsappUrl] = useState(null);
+
+    const carregar = useCallback(async () => {
+        setCarregando(true);
+        try {
+            const res = await api.get(`/agenda/solicitacoes?status=${filtro}`);
+            setSolicitacoes(res.data.solicitacoes || []);
+        } catch {
+            setSolicitacoes([]);
+        } finally {
+            setCarregando(false);
+        }
+    }, [filtro]);
+
+    useEffect(() => {
+        carregar();
+    }, [carregar]);
+
+    async function handleAprovar(id) {
+        if (!confirm("Aprovar esta solicitação e adicionar o evento à agenda?")) return;
+        setProcessando(id);
+        try {
+            await api.patch(`/agenda/solicitacoes/${id}/aprovar`);
+            carregar();
+        } catch (err) {
+            alert(err.response?.data?.error || "Erro ao aprovar solicitação");
+        } finally {
+            setProcessando(null);
+        }
+    }
+
+    async function confirmarReprovar() {
+        if (!modalReprovar) return;
+        setProcessando(modalReprovar.id);
+        try {
+            const res = await api.patch(`/agenda/solicitacoes/${modalReprovar.id}/reprovar`, { motivo });
+            setModalReprovar(null);
+            setMotivo("");
+            if (res.data.whatsapp_url) setWhatsappUrl(res.data.whatsapp_url);
+            carregar();
+        } catch (err) {
+            alert(err.response?.data?.error || "Erro ao reprovar solicitação");
+        } finally {
+            setProcessando(null);
+        }
+    }
+
+    const filtros = [
+        { key: "pendente", label: "Pendentes", cor: "text-amber-600 bg-amber-50 border-amber-200" },
+        { key: "aprovado", label: "Aprovados", cor: "text-emerald-600 bg-emerald-50 border-emerald-200" },
+        { key: "reprovado", label: "Reprovados", cor: "text-red-600 bg-red-50 border-red-200" },
+    ];
+
+    return (
+        <div className="space-y-4">
+            {/* Filtros de status */}
+            <div className="flex gap-2 flex-wrap">
+                {filtros.map((f) => (
+                    <button
+                        key={f.key}
+                        onClick={() => setFiltro(f.key)}
+                        className={clsx(
+                            "px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all",
+                            filtro === f.key ? f.cor : "text-gray-500 bg-white border-gray-200 hover:border-gray-300",
+                        )}
+                    >
+                        {f.label}
+                    </button>
+                ))}
+
+                {/* Link para página pública */}
+                {igrejaSlug && (
+                    <a
+                        href={`/agenda/${igrejaSlug}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-600 text-xs font-semibold hover:bg-blue-100 transition-colors"
+                    >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                        Ver agenda pública
+                    </a>
+                )}
+            </div>
+
+            {/* Lista */}
+            {carregando ? (
+                <div className="flex justify-center py-10">
+                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+            ) : solicitacoes.length === 0 ? (
+                <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                    <Users className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                    <p className="text-gray-500 dark:text-gray-400 font-medium">Nenhuma solicitação {filtro}</p>
+                    <p className="text-gray-400 dark:text-gray-500 text-sm mt-1">
+                        {filtro === "pendente" ? "Nenhuma nova solicitação de agendamento." : `Nenhum registro ${filtro}.`}
+                    </p>
+                </div>
+            ) : (
+                <div className="space-y-3">
+                    {solicitacoes.map((s) => (
+                        <div key={s.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 space-y-3">
+                            <div className="flex items-start justify-between gap-4">
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                        <h4 className="font-semibold text-gray-900 dark:text-white text-sm">{s.titulo}</h4>
+                                        {s.status === "pendente" && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-700 border border-amber-200">
+                                                Pendente
+                                            </span>
+                                        )}
+                                        {s.status === "aprovado" && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                                                Aprovado
+                                            </span>
+                                        )}
+                                        {s.status === "reprovado" && (
+                                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-700 border border-red-200">
+                                                Reprovado
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-3 mt-1.5 text-xs text-gray-500 dark:text-gray-400 flex-wrap">
+                                        <span className="flex items-center gap-1">
+                                            <Calendar className="w-3.5 h-3.5" />
+                                            {s.data_inicio?.split("-").reverse().join("/")}
+                                            {s.hora_inicio ? ` às ${s.hora_inicio}` : ""}
+                                        </span>
+                                        {s.local && (
+                                            <span className="flex items-center gap-1">
+                                                <MapPin className="w-3.5 h-3.5" />
+                                                {s.local}
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {s.descricao && <p className="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">{s.descricao}</p>}
+
+                            {/* Dados do solicitante */}
+                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 text-xs text-gray-600 dark:text-gray-300 space-y-1">
+                                <p className="font-semibold text-gray-700 dark:text-gray-200 mb-1.5">Solicitante</p>
+                                <p>
+                                    <span className="text-gray-400">Nome: </span>
+                                    {s.nome}
+                                </p>
+                                <p>
+                                    <span className="text-gray-400">Celular: </span>
+                                    {s.celular}
+                                    {s.whatsapp && s.whatsapp !== s.celular ? ` · WhatsApp: ${s.whatsapp}` : ""}
+                                </p>
+                                {s.email && (
+                                    <p>
+                                        <span className="text-gray-400">E-mail: </span>
+                                        {s.email}
+                                    </p>
+                                )}
+                                <p className="text-gray-400 text-[10px] mt-1">
+                                    Recebida em {new Date(s.created_at).toLocaleDateString("pt-BR")} às{" "}
+                                    {new Date(s.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                                </p>
+                            </div>
+
+                            {/* Motivo de reprovação (se houver) */}
+                            {s.status === "reprovado" && s.motivo_reprovacao && (
+                                <div className="flex items-start gap-2 p-2.5 bg-red-50 dark:bg-red-900/20 rounded-lg text-xs text-red-700 dark:text-red-300">
+                                    <XCircle className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+                                    <span>
+                                        <strong>Motivo:</strong> {s.motivo_reprovacao}
+                                    </span>
+                                </div>
+                            )}
+
+                            {/* Ações (apenas pendentes) */}
+                            {s.status === "pendente" && (
+                                <div className="flex gap-2 pt-1">
+                                    <button
+                                        onClick={() => handleAprovar(s.id)}
+                                        disabled={processando === s.id}
+                                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-500 hover:bg-emerald-600 text-white transition-colors disabled:opacity-60"
+                                    >
+                                        <CheckCircle className="w-3.5 h-3.5" />
+                                        {processando === s.id ? "Processando..." : "Aprovar"}
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            setModalReprovar(s);
+                                            setMotivo("");
+                                        }}
+                                        disabled={processando === s.id}
+                                        className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold border border-red-200 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-60"
+                                    >
+                                        <XCircle className="w-3.5 h-3.5" />
+                                        Reprovar
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Modal de reprovação */}
+            {modalReprovar && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md">
+                        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-gray-700">
+                            <h3 className="font-semibold text-gray-900 dark:text-white">Reprovar Solicitação</h3>
+                            <button onClick={() => setModalReprovar(null)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-xl text-sm text-gray-600 dark:text-gray-300">
+                                <p className="font-semibold">{modalReprovar.titulo}</p>
+                                <p className="text-xs text-gray-400 mt-0.5">
+                                    {modalReprovar.data_inicio?.split("-").reverse().join("/")} · {modalReprovar.nome}
+                                </p>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1.5">
+                                    <MessageSquare className="w-3.5 h-3.5 inline mr-1 opacity-60" />
+                                    Motivo da reprovação (opcional)
+                                </label>
+                                <textarea
+                                    value={motivo}
+                                    onChange={(e) => setMotivo(e.target.value)}
+                                    rows={3}
+                                    placeholder="Ex: Data indisponível no calendário da igreja..."
+                                    className="input resize-none text-sm"
+                                />
+                                <p className="text-[10px] text-gray-400 mt-1">
+                                    {modalReprovar.email
+                                        ? "Um e-mail será enviado automaticamente ao solicitante."
+                                        : "O solicitante não tem e-mail cadastrado."}{" "}
+                                    Você também poderá enviar uma mensagem via WhatsApp.
+                                </p>
+                            </div>
+                            <div className="flex gap-3 pt-1">
+                                <button
+                                    onClick={() => setModalReprovar(null)}
+                                    className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={confirmarReprovar}
+                                    disabled={processando === modalReprovar.id}
+                                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-colors disabled:opacity-60"
+                                >
+                                    <XCircle className="w-4 h-4" />
+                                    {processando === modalReprovar.id ? "Reprovando..." : "Confirmar Reprovação"}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal pós-reprovação: link WhatsApp */}
+            {whatsappUrl && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center space-y-4">
+                        <div className="w-14 h-14 rounded-full bg-emerald-100 flex items-center justify-center mx-auto">
+                            <MessageCircle className="w-7 h-7 text-emerald-600" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-gray-900 dark:text-white">Solicitação reprovada</h3>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
+                                Deseja enviar uma mensagem via WhatsApp informando o solicitante sobre a reprovação?
+                            </p>
+                        </div>
+                        <div className="flex gap-3">
+                            <button
+                                onClick={() => setWhatsappUrl(null)}
+                                className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                            >
+                                Não
+                            </button>
+                            <a
+                                href={whatsappUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => setWhatsappUrl(null)}
+                                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium transition-colors"
+                            >
+                                <Send className="w-4 h-4" />
+                                Enviar WhatsApp
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
 // ─── Página principal ────────────────────────────────────────────────────────
 export default function AgendaPage() {
     const { usuario, loading: authLoading } = useAuth();
     const temAgenda = !!usuario?.igreja?.plano_recursos?.agenda;
+    const temAgendaPublica = !!usuario?.igreja?.plano_recursos?.agenda_publica;
+    const igrejaSlug = usuario?.igreja?.slug;
 
     const hoje = new Date();
     const [aba, setAba] = useState("pastoral");
+    const [subAba, setSubAba] = useState("calendario"); // "calendario" | "solicitacoes"
     const [ano, setAno] = useState(hoje.getFullYear());
     const [mes, setMes] = useState(hoje.getMonth());
     const [eventos, setEventos] = useState([]);
@@ -670,6 +984,7 @@ export default function AgendaPage() {
         if (!temAgenda) return;
         carregarEventos();
         setDiaSelecionado(null);
+        setSubAba("calendario");
     }, [carregarEventos, temAgenda]);
 
     function prevMes() {
@@ -757,7 +1072,20 @@ export default function AgendaPage() {
                     </h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Gerencie os compromissos pastorais e os eventos da igreja</p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
+                    {/* Botão Compartilhar Agenda Pública — apenas Profissional/Premium e aba de eventos */}
+                    {temAgendaPublica && aba === "evento" && igrejaSlug && (
+                        <a
+                            href={`/agenda/${igrejaSlug}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            title="Abrir página pública da agenda"
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                        >
+                            <Share2 className="w-4 h-4" />
+                            Agenda Pública
+                        </a>
+                    )}
                     <button
                         onClick={() => window.open(`/api/agenda/exportar-ics?tipo=${aba}&mes=${mesStr}`, "_blank")}
                         title="Exportar como .ics (Google Calendar / Apple Calendar)"
@@ -766,20 +1094,22 @@ export default function AgendaPage() {
                         <Download className="w-4 h-4" />
                         Exportar ICS
                     </button>
-                    <button
-                        onClick={() => {
-                            setFormDataInicial("");
-                            setModalNovo(true);
-                        }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm"
-                    >
-                        <Plus className="w-4 h-4" />
-                        Novo {aba === "pastoral" ? "Compromisso" : "Evento"}
-                    </button>
+                    {subAba === "calendario" && (
+                        <button
+                            onClick={() => {
+                                setFormDataInicial("");
+                                setModalNovo(true);
+                            }}
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium hover:bg-primary-700 transition-colors shadow-sm"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Novo {aba === "pastoral" ? "Compromisso" : "Evento"}
+                        </button>
+                    )}
                 </div>
             </div>
 
-            {/* Abas */}
+            {/* Abas principais */}
             <div className="flex gap-1 bg-gray-100 dark:bg-gray-700/60 p-1 rounded-xl w-fit">
                 {Object.entries(abaConfig).map(([key, cfg]) => (
                     <button
@@ -798,6 +1128,36 @@ export default function AgendaPage() {
                 ))}
             </div>
 
+            {/* Sub-abas da aba Eventos — Calendário | Solicitações */}
+            {aba === "evento" && temAgendaPublica && (
+                <div className="flex gap-1 bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 p-1 rounded-xl w-fit">
+                    <button
+                        onClick={() => setSubAba("calendario")}
+                        className={clsx(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            subAba === "calendario"
+                                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
+                        )}
+                    >
+                        <CalendarDays className="w-4 h-4" />
+                        Calendário
+                    </button>
+                    <button
+                        onClick={() => setSubAba("solicitacoes")}
+                        className={clsx(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all",
+                            subAba === "solicitacoes"
+                                ? "bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm"
+                                : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200",
+                        )}
+                    >
+                        <Bell className="w-4 h-4" />
+                        Solicitações
+                    </button>
+                </div>
+            )}
+
             {/* Aviso de notificações — apenas pastoral */}
             {aba === "pastoral" && (
                 <div className="flex items-start gap-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 rounded-xl px-4 py-3 text-sm text-purple-700 dark:text-purple-300">
@@ -810,30 +1170,35 @@ export default function AgendaPage() {
                 </div>
             )}
 
-            {/* Layout calendário + lista */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-                {/* Calendário — ocupa 2 colunas */}
-                <div className="xl:col-span-2">
-                    {carregando ? (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-center h-80">
-                            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                        </div>
-                    ) : (
-                        <Calendario ano={ano} mes={mes} eventos={eventos} onDiaClick={handleDiaClick} onPrevMes={prevMes} onProxMes={proxMes} />
-                    )}
-                </div>
+            {/* Painel de Solicitações (aba evento + sub-aba solicitacoes) */}
+            {aba === "evento" && subAba === "solicitacoes" && <SolicitacoesPanel igrejaSlug={igrejaSlug} />}
 
-                {/* Painel lateral */}
-                <div className="xl:col-span-1 min-h-[400px]">
-                    <ListaEventos
-                        eventos={eventos}
-                        diaSelecionado={diaSelecionado}
-                        tipo={aba}
-                        onEventoClick={setEventoDetalhe}
-                        onNovoEventoDia={handleNovoEventoDia}
-                    />
+            {/* Layout calendário + lista (visível apenas quando sub-aba = calendário) */}
+            {subAba === "calendario" && (
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                    {/* Calendário — ocupa 2 colunas */}
+                    <div className="xl:col-span-2">
+                        {carregando ? (
+                            <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 flex items-center justify-center h-80">
+                                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                            </div>
+                        ) : (
+                            <Calendario ano={ano} mes={mes} eventos={eventos} onDiaClick={handleDiaClick} onPrevMes={prevMes} onProxMes={proxMes} />
+                        )}
+                    </div>
+
+                    {/* Painel lateral */}
+                    <div className="xl:col-span-1 min-h-[400px]">
+                        <ListaEventos
+                            eventos={eventos}
+                            diaSelecionado={diaSelecionado}
+                            tipo={aba}
+                            onEventoClick={setEventoDetalhe}
+                            onNovoEventoDia={handleNovoEventoDia}
+                        />
+                    </div>
                 </div>
-            </div>
+            )}
 
             {/* Modais */}
             {(modalNovo || eventoEditando) && (

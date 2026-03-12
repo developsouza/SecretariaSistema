@@ -13,6 +13,7 @@ import VerificarMembro from "./pages/VerificarMembro";
 import EsqueciSenhaPage from "./pages/EsqueciSenha";
 import RedefinirSenhaPage from "./pages/RedefinirSenha";
 import VerificarEmailPage from "./pages/VerificarEmail";
+import AgendaPublica from "./pages/AgendaPublica";
 
 // Layouts carregados de forma síncrona (necessários para estrutura)
 import DashboardLayout from "./layouts/DashboardLayout";
@@ -148,6 +149,7 @@ export default function App() {
                                 <Route path="/registro" element={<RegistroPage />} />
                                 <Route path="/verificar/:slug/:membroId" element={<VerificarMembro />} />
                                 <Route path="/pre-cadastro/:slug" element={<PreCadastroPublico />} />
+                                <Route path="/agenda/:slug" element={<AgendaPublica />} />
                                 <Route path="/esqueci-senha" element={<EsqueciSenhaPage />} />
                                 <Route path="/redefinir-senha" element={<RedefinirSenhaPage />} />
                                 <Route path="/verificar-email" element={<VerificarEmailPage />} />

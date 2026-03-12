@@ -60,13 +60,30 @@ async function authMiddleware(req, res, next) {
         // Recursos canônicos por nome de plano — garante compatibilidade com bancos
         // criados antes de migrações que adicionam novas flags.
         const RECURSOS_POR_PLANO = {
-            Básico: { carteiras: true, qrcode: false, email: false, agenda: false, relatorios_basicos: true, relatorios_avancados: false },
-            Profissional: { carteiras: true, qrcode: true, email: true, agenda: true, relatorios_basicos: true, relatorios_avancados: true },
+            Básico: {
+                carteiras: true,
+                qrcode: false,
+                email: false,
+                agenda: false,
+                agenda_publica: false,
+                relatorios_basicos: true,
+                relatorios_avancados: false,
+            },
+            Profissional: {
+                carteiras: true,
+                qrcode: true,
+                email: true,
+                agenda: true,
+                agenda_publica: true,
+                relatorios_basicos: true,
+                relatorios_avancados: true,
+            },
             Premium: {
                 carteiras: true,
                 qrcode: true,
                 email: true,
                 agenda: true,
+                agenda_publica: true,
                 relatorios_basicos: true,
                 relatorios_avancados: true,
                 api_publica: true,

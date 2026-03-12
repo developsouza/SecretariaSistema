@@ -347,10 +347,37 @@ function initSchema() {
     CREATE INDEX IF NOT EXISTS idx_membros_igreja ON membros(igreja_id);
     CREATE INDEX IF NOT EXISTS idx_membros_situacao ON membros(situacao);
     CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email);
+    -- ─── Solicitações de Agendamento Público ─────────────────────────────
+    CREATE TABLE IF NOT EXISTS solicitacoes_agendamento (
+      id               TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+      igreja_id        TEXT NOT NULL REFERENCES igrejas(id) ON DELETE CASCADE,
+      nome             TEXT NOT NULL,
+      email            TEXT,
+      celular          TEXT NOT NULL,
+      whatsapp         TEXT,
+      titulo           TEXT NOT NULL,
+      descricao        TEXT,
+      local            TEXT,
+      data_inicio      TEXT NOT NULL,
+      hora_inicio      TEXT,
+      data_fim         TEXT,
+      hora_fim         TEXT,
+      status           TEXT NOT NULL DEFAULT 'pendente', -- pendente | aprovado | reprovado
+      motivo_reprovacao TEXT,
+      aprovado_por     TEXT REFERENCES usuarios(id),
+      aprovado_em      TEXT,
+      reprovado_por    TEXT REFERENCES usuarios(id),
+      reprovado_em     TEXT,
+      evento_id        TEXT REFERENCES agenda_eventos(id) ON DELETE SET NULL,
+      created_at       TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at       TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+
     CREATE INDEX IF NOT EXISTS idx_igrejas_slug ON igrejas(slug);
     CREATE INDEX IF NOT EXISTS idx_igrejas_stripe ON igrejas(stripe_customer_id);
     CREATE INDEX IF NOT EXISTS idx_pre_cadastros_igreja ON pre_cadastros(igreja_id, status);
     CREATE INDEX IF NOT EXISTS idx_agenda_igreja_tipo ON agenda_eventos(igreja_id, tipo, data_inicio);
+    CREATE INDEX IF NOT EXISTS idx_solicitacoes_igreja ON solicitacoes_agendamento(igreja_id, status);
 
     -- ─── Superadmins (Master/SaaS owner) ─────────────────────────────────
     CREATE TABLE IF NOT EXISTS superadmins (
@@ -450,16 +477,24 @@ function initSchema() {
           )
     `);
 
-    // Migração de recursos de planos — garantir que Profissional e Premium tenham `agenda: true`
+    // Migração de recursos de planos — garantir que Profissional e Premium tenham `agenda: true` e `agenda_publica: true`
     try {
         const planos = db.prepare("SELECT id, nome, recursos FROM planos").all();
         for (const plano of planos) {
             if (plano.nome === "Profissional" || plano.nome === "Premium") {
                 const recursos = JSON.parse(plano.recursos || "{}");
+                let alterado = false;
                 if (!recursos.agenda) {
                     recursos.agenda = true;
+                    alterado = true;
+                }
+                if (!recursos.agenda_publica) {
+                    recursos.agenda_publica = true;
+                    alterado = true;
+                }
+                if (alterado) {
                     db.prepare("UPDATE planos SET recursos = ?, updated_at = datetime('now') WHERE id = ?").run(JSON.stringify(recursos), plano.id);
-                    console.log(`[DB] Plano "${plano.nome}" atualizado: agenda=true`);
+                    console.log(`[DB] Plano "${plano.nome}" atualizado: agenda=true, agenda_publica=true`);
                 }
             }
         }

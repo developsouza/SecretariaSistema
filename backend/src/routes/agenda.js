@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const nodemailer = require("nodemailer");
 const { getDb } = require("../database/db");
 const { authMiddleware, assinaturaAtiva } = require("../middlewares/auth");
 
@@ -135,6 +136,154 @@ router.get("/exportar-ics", (req, res, next) => {
         res.setHeader("Content-Type", "text/calendar; charset=utf-8");
         res.setHeader("Content-Disposition", `attachment; filename="${nomeArquivo}"`);
         res.send(linhas.join("\r\n"));
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── Helper: transporter de e-mail ────────────────────────────────────────
+function criarTransporter() {
+    return nodemailer.createTransport({
+        host: process.env.SMTP_HOST || "smtp.gmail.com",
+        port: parseInt(process.env.SMTP_PORT) || 587,
+        secure: process.env.SMTP_SECURE === "true",
+        auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+}
+
+// ─── GET /api/agenda/solicitacoes ─────────────────────────────────────────
+// Lista solicitações de agendamento da igreja (admin)
+router.get("/solicitacoes", (req, res, next) => {
+    try {
+        const db = getDb();
+        const status = req.query.status || "pendente";
+        const solicitacoes = db
+            .prepare(
+                `SELECT s.*, u1.nome AS aprovado_por_nome, u2.nome AS reprovado_por_nome
+                 FROM solicitacoes_agendamento s
+                 LEFT JOIN usuarios u1 ON u1.id = s.aprovado_por
+                 LEFT JOIN usuarios u2 ON u2.id = s.reprovado_por
+                 WHERE s.igreja_id = ? AND s.status = ?
+                 ORDER BY s.created_at DESC`,
+            )
+            .all(req.igreja.id, status);
+        res.json({ solicitacoes });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── PATCH /api/agenda/solicitacoes/:id/aprovar ───────────────────────────
+// Aprova solicitação: cria o evento na agenda automaticamente
+router.patch("/solicitacoes/:id/aprovar", (req, res, next) => {
+    try {
+        const db = getDb();
+        const s = db.prepare("SELECT * FROM solicitacoes_agendamento WHERE id = ? AND igreja_id = ?").get(req.params.id, req.igreja.id);
+        if (!s) return res.status(404).json({ error: "Solicitação não encontrada" });
+        if (s.status !== "pendente") return res.status(400).json({ error: "Solicitação já foi processada" });
+
+        // Criar evento na agenda da igreja
+        const created = db
+            .prepare(
+                `INSERT INTO agenda_eventos
+                 (id, igreja_id, tipo, titulo, descricao, local, data_inicio, hora_inicio,
+                  data_fim, hora_fim, cor, dia_todo, recorrente, recorrencia, notificado_dia_anterior, created_by)
+                 VALUES (lower(hex(randomblob(16))), ?, 'evento', ?, ?, ?, ?, ?, ?, ?, '#1a56db', 0, 0, null, 0, ?)
+                 RETURNING id`,
+            )
+            .get(req.igreja.id, s.titulo, s.descricao, s.local, s.data_inicio, s.hora_inicio, s.data_fim, s.hora_fim, req.user.id);
+
+        db.prepare(
+            `UPDATE solicitacoes_agendamento
+             SET status = 'aprovado', aprovado_por = ?, aprovado_em = datetime('now'),
+                 evento_id = ?, updated_at = datetime('now')
+             WHERE id = ?`,
+        ).run(req.user.id, created.id, s.id);
+
+        // Marcar notificação relacionada como lida
+        try {
+            db.prepare("UPDATE notificacoes SET lida = 1 WHERE igreja_id = ? AND dados LIKE ?").run(req.igreja.id, `%"solicitacao_id":"${s.id}"%`);
+        } catch (_) {}
+
+        res.json({ ok: true, evento_id: created.id });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── PATCH /api/agenda/solicitacoes/:id/reprovar ──────────────────────────
+// Reprova solicitação: envia e-mail ao solicitante e retorna link WhatsApp
+router.patch("/solicitacoes/:id/reprovar", async (req, res, next) => {
+    try {
+        const db = getDb();
+        const s = db.prepare("SELECT * FROM solicitacoes_agendamento WHERE id = ? AND igreja_id = ?").get(req.params.id, req.igreja.id);
+        if (!s) return res.status(404).json({ error: "Solicitação não encontrada" });
+        if (s.status !== "pendente") return res.status(400).json({ error: "Solicitação já foi processada" });
+
+        const { motivo } = req.body;
+        const dataFormatada = s.data_inicio.split("-").reverse().join("/");
+
+        db.prepare(
+            `UPDATE solicitacoes_agendamento
+             SET status = 'reprovado', reprovado_por = ?, reprovado_em = datetime('now'),
+                 motivo_reprovacao = ?, updated_at = datetime('now')
+             WHERE id = ?`,
+        ).run(req.user.id, motivo || null, s.id);
+
+        // Marcar notificação relacionada como lida
+        try {
+            db.prepare("UPDATE notificacoes SET lida = 1 WHERE igreja_id = ? AND dados LIKE ?").run(req.igreja.id, `%"solicitacao_id":"${s.id}"%`);
+        } catch (_) {}
+
+        // Enviar e-mail de reprovação (se solicitante tiver e-mail e SMTP configurado)
+        if (s.email && process.env.SMTP_USER) {
+            try {
+                const transporter = criarTransporter();
+                await transporter.sendMail({
+                    from: `"${req.igreja.nome}" <${process.env.SMTP_USER}>`,
+                    to: s.email,
+                    subject: `Solicitação de Agendamento — ${req.igreja.nome}`,
+                    html: `
+                        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
+                          <div style="background:linear-gradient(135deg,#1a56db,#6366f1);padding:28px 24px;border-radius:12px 12px 0 0;text-align:center;">
+                            <h1 style="color:#fff;margin:0;font-size:22px;">${req.igreja.nome}</h1>
+                            <p style="color:#c7d2fe;margin:6px 0 0;font-size:14px;">Solicitação de Agendamento</p>
+                          </div>
+                          <div style="padding:28px 24px;background:#fff;border-radius:0 0 12px 12px;border:1px solid #e5e7eb;border-top:none;">
+                            <p style="color:#374151;font-size:15px;line-height:1.6;">Olá, <strong>${s.nome}</strong>.</p>
+                            <p style="color:#374151;font-size:15px;line-height:1.6;">
+                              Infelizmente, sua solicitação de agendamento para o evento
+                              <strong>"${s.titulo}"</strong> na data <strong>${dataFormatada}</strong>
+                              não pôde ser confirmada.
+                            </p>
+                            ${motivo ? `<div style="margin:16px 0;padding:14px 18px;background:#fef2f2;border-left:4px solid #ef4444;border-radius:0 8px 8px 0;"><p style="color:#7f1d1d;margin:0;font-size:14px;"><strong>Motivo:</strong> ${motivo}</p></div>` : ""}
+                            <p style="color:#374151;font-size:14px;line-height:1.6;">
+                              Entre em contato conosco para mais informações ou para verificar outras datas disponíveis.
+                            </p>
+                            <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+                            <p style="color:#9ca3af;font-size:12px;margin:0;text-align:center;">— Equipe <strong>${req.igreja.nome}</strong></p>
+                          </div>
+                        </div>`,
+                });
+            } catch (emailErr) {
+                console.error("[Agenda] Erro ao enviar e-mail de reprovação:", emailErr.message);
+            }
+        }
+
+        // Gerar link WhatsApp para envio manual (retornado ao frontend)
+        const telefoneRaw = (s.whatsapp || s.celular || "").replace(/\D/g, "");
+        let whatsapp_url = null;
+        if (telefoneRaw.length >= 10) {
+            const numero = telefoneRaw.startsWith("55") ? telefoneRaw : `55${telefoneRaw}`;
+            const mensagem =
+                `Olá ${s.nome}, sua solicitação de agendamento do evento "${s.titulo}" ` +
+                `para ${dataFormatada} infelizmente não pôde ser confirmada pela ${req.igreja.nome}.` +
+                (motivo ? ` Motivo: ${motivo}.` : "") +
+                " Em caso de dúvidas, entre em contato conosco.";
+            whatsapp_url = `https://wa.me/${numero}?text=${encodeURIComponent(mensagem)}`;
+        }
+
+        res.json({ ok: true, whatsapp_url });
     } catch (err) {
         next(err);
     }
