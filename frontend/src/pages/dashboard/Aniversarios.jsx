@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { dashboardAPI } from "../../services/api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { dashboardAPI, aniversariosPublicosAPI } from "../../services/api";
 import { useAuth } from "../../hooks/useAuth";
 import {
     Cake,
@@ -17,6 +17,9 @@ import {
     FileText,
     MessageSquare,
     Share2,
+    Trash2,
+    UserX,
+    AlertTriangle,
 } from "lucide-react";
 import { parseISO } from "date-fns";
 import CalendarioAniversariantes from "../../components/CalendarioAniversariantes";
@@ -24,7 +27,7 @@ import CalendarioAniversariantes from "../../components/CalendarioAniversariante
 // ─── Constantes ───────────────────────────────────────────────────────────
 const MESES = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
-const TABS = ["Calendário", "Lista"];
+const TABS = ["Calendário", "Lista", "Cadastros Externos"];
 
 // ─── Cargo / ministério — cores de destaque ──────────────────────────────
 function getCargoVariant(cargo) {
@@ -541,6 +544,11 @@ export default function Aniversarios() {
     const [anoSelecionado, setAnoSelecionado] = useState(agora.getFullYear());
     const [busca, setBusca] = useState("");
 
+    // ── Aba Cadastros Externos ─────────────────────────────────────────────
+    const [buscaExternos, setBuscaExternos] = useState("");
+    const [confirmandoRemocao, setConfirmandoRemocao] = useState(null); // id do registro
+    const queryClient = useQueryClient();
+
     // ── Painel de exportação ───────────────────────────────────────────────
     const [exportTipo, setExportTipo] = useState("mes"); // "semana" | "mes"
     const [exportMes, setExportMes] = useState(mesAtual);
@@ -573,6 +581,20 @@ export default function Aniversarios() {
         queryKey: ["aniversariantes-export", exportAno, exportMes],
         queryFn: () => dashboardAPI.aniversariantes(exportMes).then((r) => r.data),
         enabled: exportTipo === "mes",
+    });
+
+    const { data: dataExternos, isLoading: loadingExternos } = useQuery({
+        queryKey: ["aniversarios-publicos", buscaExternos],
+        queryFn: () => aniversariosPublicosAPI.listar({ busca: buscaExternos, limit: 200 }).then((r) => r.data),
+        enabled: tab === "Cadastros Externos",
+    });
+
+    const mutacaoRemover = useMutation({
+        mutationFn: (id) => aniversariosPublicosAPI.remover(id),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["aniversarios-publicos"] });
+            setConfirmandoRemocao(null);
+        },
     });
 
     // ── Dados derivados ───────────────────────────────────────────────────
@@ -728,6 +750,7 @@ export default function Aniversarios() {
                             >
                                 {t === "Calendário" && <span className="mr-1.5">📅</span>}
                                 {t === "Lista" && <span className="mr-1.5">📋</span>}
+                                {t === "Cadastros Externos" && <span className="mr-1.5">🌐</span>}
                                 {t}
                             </button>
                         ))}
@@ -831,6 +854,157 @@ export default function Aniversarios() {
                 <div className="mt-6">
                     {/* ── Tab: Calendário ─── */}
                     {tab === "Calendário" && <CalendarioAniversariantes mes={exportMes} ano={exportAno} onNavMes={navExportMes} />}
+
+                    {/* ── Tab: Cadastros Externos ─── */}
+                    {tab === "Cadastros Externos" && (
+                        <div className="space-y-4">
+                            {/* Cabeçalho */}
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                                        Aniversariantes cadastrados diretamente na página pública da sua igreja.
+                                    </p>
+                                </div>
+                                <div className="relative flex-shrink-0 w-full sm:w-72">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                    <input
+                                        value={buscaExternos}
+                                        onChange={(e) => setBuscaExternos(e.target.value)}
+                                        placeholder="Buscar por nome, telefone…"
+                                        className="input pl-9 w-full"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Modal de confirmação */}
+                            {confirmandoRemocao && (
+                                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 max-w-sm w-full mx-4">
+                                        <div className="flex items-center gap-3 mb-4">
+                                            <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/15 flex items-center justify-center flex-shrink-0">
+                                                <AlertTriangle className="w-5 h-5 text-red-600 dark:text-red-400" />
+                                            </div>
+                                            <div>
+                                                <h3 className="font-semibold text-gray-900 dark:text-white">Remover cadastro?</h3>
+                                                <p className="text-sm text-gray-500 dark:text-gray-400">Esta ação não pode ser desfeita.</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex justify-end gap-2">
+                                            <button
+                                                onClick={() => setConfirmandoRemocao(null)}
+                                                className="px-4 py-2 text-sm font-medium rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 transition-colors"
+                                            >
+                                                Cancelar
+                                            </button>
+                                            <button
+                                                onClick={() => mutacaoRemover.mutate(confirmandoRemocao)}
+                                                disabled={mutacaoRemover.isPending}
+                                                className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 hover:bg-red-700 text-white transition-colors disabled:opacity-50"
+                                            >
+                                                {mutacaoRemover.isPending ? "Removendo…" : "Remover"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Lista */}
+                            {loadingExternos ? (
+                                <div className="flex justify-center py-12">
+                                    <div className="w-7 h-7 border-2 border-pink-400 border-t-transparent rounded-full animate-spin" />
+                                </div>
+                            ) : !dataExternos?.registros?.length ? (
+                                <div className="text-center py-16 space-y-3">
+                                    <UserX className="w-14 h-14 text-gray-200 dark:text-gray-700 mx-auto" />
+                                    <p className="text-gray-500 dark:text-gray-400 font-medium">
+                                        {buscaExternos ? "Nenhum resultado para a busca." : "Nenhum cadastro recebido pela página pública."}
+                                    </p>
+                                    {buscaExternos && (
+                                        <button onClick={() => setBuscaExternos("")} className="text-sm text-primary hover:underline">
+                                            Limpar busca
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                                    <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+                                        <Users className="w-4 h-4 text-gray-400" />
+                                        <span className="text-sm font-medium text-gray-600 dark:text-gray-300">
+                                            {dataExternos.registros.length} cadastro{dataExternos.registros.length !== 1 ? "s" : ""}
+                                        </span>
+                                    </div>
+                                    <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                                        {dataExternos.registros.map((reg) => {
+                                            const dataNasc = reg.data_nascimento ? new Date(reg.data_nascimento + "T12:00:00") : null;
+                                            const diaMes = dataNasc ? dataNasc.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" }) : "—";
+                                            const dataRegistro = new Date(reg.created_at).toLocaleDateString("pt-BR", {
+                                                day: "2-digit",
+                                                month: "2-digit",
+                                                year: "numeric",
+                                            });
+                                            return (
+                                                <div
+                                                    key={reg.id}
+                                                    className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/40 transition-colors"
+                                                >
+                                                    {/* Avatar */}
+                                                    <div className="w-9 h-9 rounded-full bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                                                        <span className="text-sm font-semibold text-indigo-600 dark:text-indigo-300">
+                                                            {reg.nome_completo?.[0]?.toUpperCase() || "?"}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Info */}
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="font-medium text-gray-900 dark:text-white text-sm truncate">
+                                                            {reg.nome_completo}
+                                                        </p>
+                                                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5">
+                                                            <span className="text-xs text-gray-500 dark:text-gray-400">🎂 {diaMes}</span>
+                                                            {reg.cargo && (
+                                                                <span className="text-xs text-indigo-500 dark:text-indigo-400 font-medium">
+                                                                    {reg.cargo}
+                                                                </span>
+                                                            )}
+                                                            {reg.congregacao && (
+                                                                <span className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                                                                    📍 {reg.congregacao}
+                                                                </span>
+                                                            )}
+                                                            {reg.celular && (
+                                                                <a
+                                                                    href={`https://wa.me/55${reg.celular.replace(/\D/g, "")}`}
+                                                                    target="_blank"
+                                                                    rel="noreferrer"
+                                                                    className="text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
+                                                                >
+                                                                    📱 {reg.celular}
+                                                                </a>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Data de cadastro */}
+                                                    <span className="text-xs text-gray-400 dark:text-gray-500 flex-shrink-0 hidden sm:block">
+                                                        {dataRegistro}
+                                                    </span>
+
+                                                    {/* Botão remover */}
+                                                    <button
+                                                        onClick={() => setConfirmandoRemocao(reg.id)}
+                                                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
+                                                        title="Remover cadastro"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
 
                     {/* ── Tab: Lista ─────── */}
                     {tab === "Lista" && (

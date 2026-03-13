@@ -72,6 +72,7 @@ app.use("/api/notificacoes", require("./routes/notificacoes"));
 app.use("/api/publico", require("./routes/publico"));
 app.use("/api/pre-cadastros", require("./routes/pre_cadastros"));
 app.use("/api/agenda", require("./routes/agenda"));
+app.use("/api/aniversarios-publicos", require("./routes/aniversarios_publicos"));
 
 // ─── Health check ─────────────────────────────────────────────────────────
 app.get("/health", (req, res) => {

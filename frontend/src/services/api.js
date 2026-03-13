@@ -134,6 +134,12 @@ export const preCadastrosAPI = {
     rejeitar: (id, motivo) => api.post(`/pre-cadastros/${id}/rejeitar`, { motivo }),
 };
 
+// ─── Aniversários Públicos (admin) ───────────────────────────────────────
+export const aniversariosPublicosAPI = {
+    listar: (params) => api.get("/aniversarios-publicos", { params }),
+    remover: (id) => api.delete(`/aniversarios-publicos/${id}`),
+};
+
 // ─── Público ─────────────────────────────────────────────────────────────
 export const publicoAPI = {
     planos: () => api.get("/publico/planos"),
