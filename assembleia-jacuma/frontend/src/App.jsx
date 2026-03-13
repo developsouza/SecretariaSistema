@@ -9,7 +9,6 @@ if ("scrollRestoration" in window.history) {
 import Hero from "./components/Hero";
 import Sobre from "./components/Sobre";
 import Cultos from "./components/Cultos";
-import Agenda from "./components/Agenda";
 import Aniversariantes from "./components/Aniversariantes";
 import Localizacao from "./components/Localizacao";
 import Contato from "./components/Contato";
@@ -49,7 +48,6 @@ function PaginaInicial() {
             <Hero />
             <Sobre />
             <Cultos />
-            <Agenda />
             <Aniversariantes />
             <Localizacao />
             <Contato />

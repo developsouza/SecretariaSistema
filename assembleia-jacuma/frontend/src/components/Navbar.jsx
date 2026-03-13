@@ -7,7 +7,7 @@ const links = [
     { href: "#inicio", label: "Início" },
     { href: "#sobre", label: "Sobre" },
     { href: "#cultos", label: "Cultos" },
-    { href: "#agenda", label: "Agenda" },
+    { href: "#aniversariantes", label: "Agenda" },
     { href: "#contato", label: "Contato" },
 ];
 
