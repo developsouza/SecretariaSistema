@@ -79,7 +79,7 @@ export default function Navbar() {
                             </a>
                         ))}
 
-                        {/* Dropdown Congregações */}
+                        {/* Dropdown Congregações — temporariamente desabilitado
                         <div className="nav-dropdown" ref={dropdownRef}>
                             <button className="nav-dropdown-trigger" onClick={() => setDropdownAberto((v) => !v)} aria-expanded={dropdownAberto}>
                                 Congregações
@@ -105,6 +105,7 @@ export default function Navbar() {
                                 </div>
                             )}
                         </div>
+                        */}
                     </div>
 
                     <button className="menu-mobile" onClick={() => setMenuAberto(true)} aria-label="Abrir menu">
@@ -126,7 +127,7 @@ export default function Navbar() {
                     </a>
                 ))}
 
-                {/* Congregações no mobile */}
+                {/* Congregações no mobile — temporariamente desabilitado
                 <button className="mobile-menu-dropdown-trigger" onClick={() => setMobileCongsAberto((v) => !v)}>
                     Congregações
                     <ChevronDown size={16} className={`dropdown-chevron ${mobileCongsAberto ? "aberto" : ""}`} />
@@ -148,6 +149,7 @@ export default function Navbar() {
                         ))}
                     </div>
                 )}
+                */}
             </div>
         </>
     );
