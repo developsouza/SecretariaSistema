@@ -51,6 +51,11 @@ function calcularIdade(dataIso) {
     }
     return idade;
 }
+// Retorna a idade que a pessoa completa (ou completou) no ano corrente
+function idadeNoAniversario(dataIso) {
+    if (!dataIso) return null;
+    return new Date().getFullYear() - parseISO(dataIso).getFullYear();
+}
 function fmtDiaMes(dataIso) {
     if (!dataIso) return "";
     const partes = dataIso.split("-");
@@ -87,7 +92,7 @@ function gerarPDF(lista, titulo, subtitulo, nomeIgreja, logoUrl) {
         .map((m) => {
             const dataNasc = m.data_nascimento ? new Date(m.data_nascimento + "T12:00:00") : null;
             const diaFormatado = dataNasc ? dataNasc.toLocaleDateString("pt-BR", { day: "2-digit", month: "long" }) : "—";
-            const idade = calcularIdade(m.data_nascimento);
+            const idade = idadeNoAniversario(m.data_nascimento);
             const iniciais = (m.nome_completo || "?")
                 .split(" ")
                 .filter(Boolean)
@@ -102,7 +107,7 @@ function gerarPDF(lista, titulo, subtitulo, nomeIgreja, logoUrl) {
                 <div class="info">
                     <div class="nome">${m.nome_completo}</div>
                     ${cargo ? `<div class="cargo">${cargo}${dept}</div>` : ""}
-                    <div class="data">🎂 ${diaFormatado}${idade !== null ? ` &middot; completa <strong>${idade + 1}</strong> ano${idade + 1 !== 1 ? "s" : ""}` : ""}</div>
+                    <div class="data">🎂 ${diaFormatado}${idade !== null ? ` &middot; completa <strong>${idade}</strong> ano${idade !== 1 ? "s" : ""}` : ""}</div>
                 </div>
             </div>`;
         })
@@ -191,7 +196,7 @@ function exportarCSV(lista, nomeArquivo) {
             const dataFormatada = dataNasc ? dataNasc.toLocaleDateString("pt-BR") : "";
             const diaMes = dataNasc ? dataNasc.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }) : "";
             const idadeAtual = calcularIdade(m.data_nascimento);
-            const faraAnos = idadeAtual !== null ? idadeAtual + 1 : "";
+            const faraAnos = idadeAtual !== null ? idadeNoAniversario(m.data_nascimento) : "";
             return [
                 esc(m.nome_completo),
                 esc(dataFormatada),
@@ -384,13 +389,20 @@ function ModalCadastro({ slug, corPrimaria, nomeIgreja, onClose, onSucesso }) {
                     {/* Departamento (condicional) */}
                     {mostraDept && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Departamento / Ministério</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                                {form.cargo === "Dirigente de Departamento" ? "Nome do Departamento que você dirige" : "Departamento / Ministério"}
+                                {form.cargo === "Dirigente de Departamento" && <span className="text-red-500 ml-0.5">*</span>}
+                            </label>
                             <input
                                 type="text"
                                 name="departamento"
                                 value={form.departamento}
                                 onChange={handleChange}
-                                placeholder="Ex: Ministério de Louvor, Jovens, EBD..."
+                                placeholder={
+                                    form.cargo === "Dirigente de Departamento"
+                                        ? "Ex: Jovens, Louvor, EBD, Senhoras..."
+                                        : "Ex: Ministério de Louvor, Jovens, EBD..."
+                                }
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
@@ -506,7 +518,7 @@ function CardMembro({ membro, corPrimaria }) {
                 <p className="font-medium text-gray-900 text-sm truncate">{membro.nome_completo}</p>
                 <p className="text-xs text-gray-500">
                     {diaFormatado}
-                    {idade !== null ? ` · completa ${idade + 1} ano${idade + 1 !== 1 ? "s" : ""}` : ""}
+                    {idade !== null ? ` · completa ${idade} ano${idade !== 1 ? "s" : ""}` : ""}
                 </p>
                 <div className="flex flex-wrap gap-1 mt-0.5">
                     {membro.cargo && <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${bg} ${text}`}>{membro.cargo}</span>}

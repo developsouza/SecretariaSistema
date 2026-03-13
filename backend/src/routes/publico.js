@@ -589,6 +589,33 @@ router.post(
                 agendaPastoralId,
             );
 
+            // Pré-cadastro no sistema (para que o admin possa editar/excluir)
+            let preCadastroId = null;
+            try {
+                const congregacao = req.body.congregacao?.trim() || null;
+                const obs = `Cadastrado via página pública de aniversários.${congregacao ? ` Congregação: ${congregacao}.` : ""}`;
+                preCadastroId = require("crypto").randomBytes(16).toString("hex");
+                db.prepare(
+                    `INSERT INTO pre_cadastros
+                     (id, igreja_id, status, nome_completo, data_nascimento, celular, whatsapp, email, cargo, congregacao_preferida, observacoes)
+                     VALUES (?, ?, 'pendente', ?, ?, ?, ?, ?, ?, ?, ?)`,
+                ).run(
+                    preCadastroId,
+                    igreja.id,
+                    nome_completo.trim(),
+                    data_nascimento,
+                    celular || "(não informado)",
+                    whatsapp || celular || null,
+                    email || null,
+                    cargo ? (departamento ? `${cargo} — ${departamento}` : cargo) : null,
+                    congregacao,
+                    obs,
+                );
+            } catch (e) {
+                console.error("[AniversarioPublico] Erro ao criar pré-cadastro:", e.message);
+                preCadastroId = null;
+            }
+
             // Notificação interna para a igreja
             try {
                 const cargoLabel = cargo + (departamento ? ` (${departamento})` : "");
@@ -599,13 +626,19 @@ router.post(
                     igreja.id,
                     "Novo Aniversário Cadastrado",
                     `${nome_completo.trim()} (${cargoLabel}) cadastrou seu aniversário na página pública.`,
-                    JSON.stringify({ aniversario_id: id, nome: nome_completo.trim(), cargo: cargo || null, departamento: departamento || null }),
+                    JSON.stringify({
+                        aniversario_id: id,
+                        pre_cadastro_id: preCadastroId,
+                        nome: nome_completo.trim(),
+                        cargo: cargo || null,
+                        departamento: departamento || null,
+                    }),
                 );
             } catch (e) {
                 console.error("[AniversarioPublico] Erro ao criar notificação:", e.message);
             }
 
-            res.status(201).json({ ok: true, id, agenda_pastoral_criada: !!agendaPastoralId });
+            res.status(201).json({ ok: true, id, pre_cadastro_id: preCadastroId, agenda_pastoral_criada: !!agendaPastoralId });
         } catch (err) {
             next(err);
         }
