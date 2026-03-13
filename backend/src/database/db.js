@@ -392,6 +392,24 @@ function initSchema() {
     );
     CREATE INDEX IF NOT EXISTS idx_contatos_site_igreja ON contatos_site(igreja_id, lido);
 
+    -- ─── Aniversários Públicos ────────────────────────────────────────────
+    CREATE TABLE IF NOT EXISTS aniversarios_publicos (
+      id              TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),
+      igreja_id       TEXT NOT NULL REFERENCES igrejas(id) ON DELETE CASCADE,
+      nome_completo   TEXT NOT NULL,
+      data_nascimento TEXT NOT NULL,         -- YYYY-MM-DD
+      celular         TEXT,
+      whatsapp        TEXT,
+      email           TEXT,
+      cargo           TEXT,                  -- cargo eclesiástico ou departamento
+      departamento    TEXT,                  -- nome do departamento (quando aplicável)
+      agenda_pastoral_id TEXT REFERENCES agenda_eventos(id) ON DELETE SET NULL,
+      ativo           INTEGER NOT NULL DEFAULT 1,
+      created_at      TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at      TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_aniversarios_publicos_igreja ON aniversarios_publicos(igreja_id, ativo);
+
     -- ─── Superadmins (Master/SaaS owner) ─────────────────────────────────
     CREATE TABLE IF NOT EXISTS superadmins (
       id           TEXT PRIMARY KEY DEFAULT (lower(hex(randomblob(16)))),

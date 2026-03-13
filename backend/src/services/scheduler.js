@@ -129,8 +129,8 @@ async function executarJobAniversariantes() {
 
     for (const igreja of igrejas) {
         try {
-            // Aniversariantes de hoje
-            const hoje = db
+            // Aniversariantes de hoje — membros cadastrados
+            const membrosHoje = db
                 .prepare(
                     `SELECT id, nome_completo, foto_url, cargo, celular, email, data_nascimento
            FROM membros
@@ -141,6 +141,19 @@ async function executarJobAniversariantes() {
            ORDER BY nome_completo`,
                 )
                 .all(igreja.id);
+
+            // Aniversariantes de hoje — registros públicos
+            const publicosHoje = db
+                .prepare(
+                    `SELECT id, nome_completo, NULL AS foto_url, cargo, celular, email, data_nascimento
+           FROM aniversarios_publicos
+           WHERE igreja_id = ? AND ativo = 1
+             AND strftime('%m-%d', data_nascimento) = strftime('%m-%d', 'now')
+           ORDER BY nome_completo`,
+                )
+                .all(igreja.id);
+
+            const hoje = [...membrosHoje, ...publicosHoje];
 
             if (hoje.length === 0) {
                 console.log(`[Scheduler] ${igreja.nome}: Sem aniversariantes hoje.`);
@@ -306,7 +319,7 @@ async function executarJobAniversariantesDoisDias() {
 
     for (const igreja of igrejas) {
         try {
-            const membros = db
+            const membros2dias = db
                 .prepare(
                     `SELECT id, nome_completo, cargo, celular, email, data_nascimento
            FROM membros
@@ -314,6 +327,17 @@ async function executarJobAniversariantesDoisDias() {
              AND strftime('%m-%d', data_nascimento) = ?`,
                 )
                 .all(igreja.id, mmdd);
+
+            const publicos2dias = db
+                .prepare(
+                    `SELECT id, nome_completo, cargo, celular, email, data_nascimento
+           FROM aniversarios_publicos
+           WHERE igreja_id = ? AND ativo = 1
+             AND strftime('%m-%d', data_nascimento) = ?`,
+                )
+                .all(igreja.id, mmdd);
+
+            const membros = [...membros2dias, ...publicos2dias];
 
             if (membros.length === 0) continue;
 
@@ -383,7 +407,7 @@ async function executarJobAniversariantesSemana() {
     for (const igreja of igrejas) {
         try {
             const placeholders = dias.map(() => "?").join(",");
-            const membros = db
+            const membrosSemana = db
                 .prepare(
                     `SELECT id, nome_completo, cargo, celular, email, data_nascimento
            FROM membros
@@ -392,6 +416,22 @@ async function executarJobAniversariantesSemana() {
            ORDER BY strftime('%m-%d', data_nascimento)`,
                 )
                 .all(igreja.id, ...dias);
+
+            const publicosSemana = db
+                .prepare(
+                    `SELECT id, nome_completo, cargo, celular, email, data_nascimento
+           FROM aniversarios_publicos
+           WHERE igreja_id = ? AND ativo = 1
+             AND strftime('%m-%d', data_nascimento) IN (${placeholders})
+           ORDER BY strftime('%m-%d', data_nascimento)`,
+                )
+                .all(igreja.id, ...dias);
+
+            const membros = [...membrosSemana, ...publicosSemana].sort((a, b) => {
+                const da = a.data_nascimento.slice(5);
+                const db_ = b.data_nascimento.slice(5);
+                return da < db_ ? -1 : da > db_ ? 1 : 0;
+            });
 
             if (membros.length === 0) {
                 console.log(`[Scheduler] ${igreja.nome}: nenhum aniversariante esta semana.`);

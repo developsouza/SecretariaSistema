@@ -405,6 +405,212 @@ router.post(
     },
 );
 
+// ─── Helpers: aniversários públicos ──────────────────────────────────────────
+function ehCargoPastoral(cargo) {
+    if (!cargo) return false;
+    const c = cargo.toLowerCase();
+    return /di[áa]con[ao]|presb[íi]tero|evangelista|pastor|dirigente de departamento/.test(c);
+}
+
+function proximoAniversario(dataIso) {
+    const hoje = new Date();
+    const nasc = new Date(dataIso + "T12:00:00");
+    const esteAno = new Date(hoje.getFullYear(), nasc.getMonth(), nasc.getDate());
+    const hojeStr = hoje.toISOString().slice(0, 10);
+    if (esteAno.toISOString().slice(0, 10) >= hojeStr) {
+        return esteAno.toISOString().slice(0, 10);
+    }
+    const proximoAno = new Date(hoje.getFullYear() + 1, nasc.getMonth(), nasc.getDate());
+    return proximoAno.toISOString().slice(0, 10);
+}
+
+const aniversarioLimiter = rateLimit({
+    windowMs: 24 * 60 * 60 * 1000, // 24 horas
+    max: 5,
+    message: { error: "Limite de cadastros atingido. Tente novamente amanhã." },
+});
+
+// ─── GET /api/publico/aniversarios/:slug ──────────────────────────────────────
+// Retorna aniversários públicos cadastrados para o mês solicitado
+router.get("/aniversarios/:slug", (req, res, next) => {
+    try {
+        const db = getDb();
+        const slug = req.params.slug.toLowerCase().trim();
+        const mes = parseInt(req.query.mes) || new Date().getMonth() + 1;
+        const mesPad = String(mes).padStart(2, "0");
+
+        const igreja = db
+            .prepare(
+                `SELECT id, nome, nome_curto, logo_url, cor_primaria, cor_secundaria, cor_texto, slug
+                 FROM igrejas WHERE slug = ? AND ativo = 1`,
+            )
+            .get(slug);
+        if (!igreja) return res.status(404).json({ error: "Igreja não encontrada" });
+
+        const aniversariantes = db
+            .prepare(
+                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento,
+                        strftime('%d', data_nascimento) AS dia,
+                        strftime('%m', data_nascimento) AS mes_nasc
+                 FROM aniversarios_publicos
+                 WHERE igreja_id = ? AND ativo = 1
+                   AND strftime('%m', data_nascimento) = ?
+                 ORDER BY strftime('%d', data_nascimento), nome_completo`,
+            )
+            .all(igreja.id, mesPad);
+
+        const hoje = db
+            .prepare(
+                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento
+                 FROM aniversarios_publicos
+                 WHERE igreja_id = ? AND ativo = 1
+                   AND strftime('%m-%d', data_nascimento) = strftime('%m-%d', 'now')
+                 ORDER BY nome_completo`,
+            )
+            .all(igreja.id);
+
+        const proximos = db
+            .prepare(
+                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento,
+                        strftime('%m-%d', data_nascimento) AS dia_mes
+                 FROM aniversarios_publicos
+                 WHERE igreja_id = ? AND ativo = 1
+                   AND strftime('%m-%d', data_nascimento) > strftime('%m-%d', 'now')
+                   AND strftime('%m-%d', data_nascimento) <= strftime('%m-%d', datetime('now', '+7 days'))
+                 ORDER BY strftime('%m-%d', data_nascimento)
+                 LIMIT 10`,
+            )
+            .all(igreja.id);
+
+        const total = db.prepare("SELECT COUNT(*) AS n FROM aniversarios_publicos WHERE igreja_id = ? AND ativo = 1").get(igreja.id)?.n || 0;
+
+        res.json({
+            igreja: {
+                nome: igreja.nome,
+                nome_curto: igreja.nome_curto,
+                logo_url: igreja.logo_url,
+                cor_primaria: igreja.cor_primaria || "#1a56db",
+                cor_secundaria: igreja.cor_secundaria || "#6366f1",
+                cor_texto: igreja.cor_texto || "#ffffff",
+                slug: igreja.slug,
+            },
+            aniversariantes,
+            hoje,
+            proximos,
+            mes,
+            total,
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── POST /api/publico/aniversarios/:slug ─────────────────────────────────────
+// Cadastro público de aniversário (com criação automática na agenda pastoral)
+router.post(
+    "/aniversarios/:slug",
+    aniversarioLimiter,
+    [
+        body("nome_completo").trim().notEmpty().withMessage("Nome completo é obrigatório"),
+        body("data_nascimento")
+            .trim()
+            .notEmpty()
+            .withMessage("Data de nascimento é obrigatória")
+            .isISO8601()
+            .withMessage("Data de nascimento inválida"),
+        body("cargo").trim().notEmpty().withMessage("Cargo é obrigatório"),
+        body("email").optional({ checkFalsy: true }).isEmail().withMessage("E-mail inválido"),
+    ],
+    (req, res, next) => {
+        try {
+            const errors = validationResult(req);
+            if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+
+            const db = getDb();
+            const slug = req.params.slug.toLowerCase().trim();
+            const igreja = db.prepare("SELECT id, nome FROM igrejas WHERE slug = ? AND ativo = 1").get(slug);
+            if (!igreja) return res.status(404).json({ error: "Igreja não encontrada" });
+
+            const { nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento } = req.body;
+
+            // Evitar duplicatas: mesmo nome + mesmo dia/mês na mesma igreja
+            const mesdia = data_nascimento.slice(5); // "MM-DD"
+            const dup = db
+                .prepare(
+                    `SELECT id FROM aniversarios_publicos
+                     WHERE igreja_id = ? AND ativo = 1
+                       AND nome_completo = ?
+                       AND strftime('%m-%d', data_nascimento) = ?`,
+                )
+                .get(igreja.id, nome_completo.trim(), mesdia);
+            if (dup) return res.status(409).json({ error: "Este aniversário já foi cadastrado." });
+
+            // Criação automática na Agenda Pastoral para cargos eclesiásticos
+            let agendaPastoralId = null;
+            if (ehCargoPastoral(cargo)) {
+                try {
+                    const dataEvento = proximoAniversario(data_nascimento);
+                    const labelCargo = cargo + (departamento ? ` — ${departamento}` : "");
+                    const criado = db
+                        .prepare(
+                            `INSERT INTO agenda_eventos
+                             (id, igreja_id, tipo, titulo, descricao, data_inicio, dia_todo, recorrente, recorrencia, cor)
+                             VALUES (lower(hex(randomblob(16))), ?, 'pastoral', ?, ?, ?, 1, 1, 'anual', '#be185d')
+                             RETURNING id`,
+                        )
+                        .get(
+                            igreja.id,
+                            `🎂 Aniversário — ${nome_completo.trim()} (${labelCargo})`,
+                            `Aniversário de ${cargo}${departamento ? ` – ${departamento}` : ""}. Cadastrado via página pública.`,
+                            dataEvento,
+                        );
+                    agendaPastoralId = criado?.id || null;
+                } catch (e) {
+                    console.error("[AniversarioPublico] Erro ao criar evento pastoral:", e.message);
+                }
+            }
+
+            const id = require("crypto").randomBytes(16).toString("hex");
+            db.prepare(
+                `INSERT INTO aniversarios_publicos
+                 (id, igreja_id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento, agenda_pastoral_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            ).run(
+                id,
+                igreja.id,
+                nome_completo.trim(),
+                data_nascimento,
+                celular || null,
+                whatsapp || null,
+                email || null,
+                cargo || null,
+                departamento || null,
+                agendaPastoralId,
+            );
+
+            // Notificação interna para a igreja
+            try {
+                const cargoLabel = cargo + (departamento ? ` (${departamento})` : "");
+                db.prepare(
+                    `INSERT INTO notificacoes (id, igreja_id, tipo, titulo, mensagem, dados)
+                     VALUES (lower(hex(randomblob(16))), ?, 'aniversario_publico', ?, ?, ?)`,
+                ).run(
+                    igreja.id,
+                    "Novo Aniversário Cadastrado",
+                    `${nome_completo.trim()} (${cargoLabel}) cadastrou seu aniversário na página pública.`,
+                    JSON.stringify({ aniversario_id: id, nome: nome_completo.trim(), cargo: cargo || null, departamento: departamento || null }),
+                );
+            } catch (e) {
+                console.error("[AniversarioPublico] Erro ao criar notificação:", e.message);
+            }
+
+            res.status(201).json({ ok: true, id, agenda_pastoral_criada: !!agendaPastoralId });
+        } catch (err) {
+            next(err);
+        }
+    },
+);
+
 // ─── POST /api/publico/contato/:slug ─────────────────────────────────────────
 // Formulário de contato público do site institucional da igreja
 const contatoLimiter = rateLimit({

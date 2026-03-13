@@ -38,18 +38,7 @@ const ESTADOS = [
 ];
 const ESTADOS_CIVIS = ["solteiro(a)", "casado(a)", "divorciado(a)", "viúvo(a)", "união estável"];
 const FORMAS_ENTRADA = ["conversão", "batismo", "transferência", "reingresso", "aclamação"];
-const CARGOS = [
-    "Membro",
-    "Diácono",
-    "Diaconisa",
-    "Presbítero",
-    "Evangelista",
-    "Pastor",
-    "Missionário",
-    "Obreiro",
-    "Líder de Célula",
-    "Líder de Departamento",
-];
+const CARGOS = ["Membro", "Diácono", "Presbítero", "Evangelista", "Pastor", "Missionário", "Obreiro", "Líder de Célula", "Dirigente de Departamento"];
 
 const STEPS = [
     { id: 0, label: "Dados Pessoais", icon: User },

@@ -139,6 +139,8 @@ export const publicoAPI = {
     planos: () => api.get("/publico/planos"),
     igreja: (slug) => api.get(`/publico/igrejas/${slug}`),
     verificarMembro: (slug, membroId) => api.get(`/publico/verificar-membro/${slug}/${membroId}`),
+    aniversarios: (slug, mes) => api.get(`/publico/aniversarios/${slug}`, { params: mes ? { mes } : {} }),
+    registrarAniversario: (slug, data) => api.post(`/publico/aniversarios/${slug}`, data),
 };
 
 // ─── Superadmin (Master) ──────────────────────────────────────────────────

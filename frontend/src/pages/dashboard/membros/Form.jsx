@@ -77,14 +77,13 @@ const TIPOS_CADASTRO = ["Novo", "Batismo", "Transferência", "Aclamação", "Rei
 const CARGOS_SELECT = [
     "Membro",
     "Diácono",
-    "Diaconisa",
     "Presbítero",
     "Evangelista",
     "Pastor",
     "Missionário",
     "Obreiro",
     "Líder de Célula",
-    "Líder de Departamento",
+    "Dirigente de Departamento",
 ];
 
 const CAMPOS_IMPORTANTES = [
