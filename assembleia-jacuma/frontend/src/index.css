@@ -430,13 +430,13 @@ button {
 
 .mobile-sistema-btn {
     display: block;
-    margin-top: 1rem;
-    padding: 0.75rem 1.2rem;
+    margin-top: 0.5rem;
+    padding: 0.65rem 1.5rem;
     background: transparent;
     color: var(--dourado);
     border: 1px solid var(--dourado);
     border-radius: 2px;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 700;
     letter-spacing: 0.05em;
     text-align: center;
@@ -472,11 +472,11 @@ button {
     right: 0;
     bottom: 0;
     background: var(--azul-profundo);
-    z-index: 999;
+    z-index: 1001;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 2.5rem;
+    gap: 1.5rem;
 }
 
 .mobile-menu.aberto {
@@ -485,7 +485,7 @@ button {
 
 .mobile-menu a {
     font-family: var(--font-display);
-    font-size: 2rem;
+    font-size: 1.25rem;
     font-weight: 500;
     color: var(--branco);
     transition: var(--transicao-rapida);
@@ -1781,34 +1781,115 @@ button {
         height: 64px;
     }
     .navbar-logo img {
-        height: 58px !important;
+        height: 44px !important;
     }
     .footer-logo {
-        height: 65px;
+        height: 55px;
     }
 
+    /* Seções — reduzir padding vertical */
+    .bem-vindo,
+    .cultos,
+    .agenda,
+    .aniversariantes,
+    .localizacao,
+    .contato {
+        padding: 4rem 0;
+    }
+    .footer {
+        padding: 3.5rem 0 1.5rem;
+    }
+    .footer-grid {
+        margin-bottom: 2.5rem;
+    }
+
+    /* Hero */
+    .hero {
+        padding-top: 64px;
+        min-height: 100svh;
+    }
+    .hero-conteudo {
+        max-width: 100%;
+    }
     .hero-stats {
         gap: 1.5rem;
     }
     .hero-acoes {
         flex-direction: column;
+        align-items: stretch;
+    }
+    .hero-acoes .btn-primario,
+    .hero-acoes .btn-secundario {
+        width: 100%;
+        justify-content: center;
+    }
+    .hero-verso {
+        max-width: 100%;
+        font-size: 0.9rem;
     }
 
+    /* Bem-vindo */
+    .bem-vindo-badge-img {
+        display: none;
+    }
+    .bem-vindo-features {
+        grid-template-columns: 1fr;
+    }
+    .bem-vindo-ornamento {
+        display: none;
+    }
+
+    /* Cultos */
     .cultos-grid {
         grid-template-columns: 1fr 1fr;
     }
 
+    /* Agenda */
     .evento-item {
         grid-template-columns: auto 1fr;
+        padding: 1.25rem;
+        gap: 1rem;
     }
     .evento-badge-destaque {
         display: none;
     }
 
+    /* Aniversariantes */
+    .aniv-evento-item,
+    .aniv-membro-item {
+        padding: 1rem 1.1rem;
+        gap: 0.85rem;
+    }
+    .aniv-evento-item {
+        grid-template-columns: auto 1px 1fr;
+    }
+    .aniv-evento-item .aniv-evento-badge {
+        display: none;
+    }
+
+    /* Contato */
+    .contato-form {
+        padding: 1.75rem 1.25rem;
+    }
     .form-row {
         grid-template-columns: 1fr;
     }
 
+    /* Congregação */
+    .congregacao-sobre-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+    .info-bar-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+    }
+    .congregacao-hero {
+        height: 55vh;
+        min-height: 360px;
+    }
+
+    /* Footer */
     .footer-grid {
         grid-template-columns: 1fr;
     }
@@ -1818,24 +1899,62 @@ button {
         text-align: center;
     }
 
-    .bem-vindo-badge-img {
-        display: none;
-    }
-    .bem-vindo-features {
-        grid-template-columns: 1fr;
-    }
-
     .container {
         padding: 0 1.25rem;
     }
 }
 
 @media (max-width: 480px) {
+    html {
+        font-size: 15px;
+    }
+    .container {
+        padding: 0 1rem;
+    }
     .cultos-grid {
         grid-template-columns: 1fr;
     }
     .hero-stats {
         display: none;
+    }
+    .hero-titulo {
+        font-size: clamp(2.4rem, 12vw, 4rem);
+    }
+    .bem-vindo,
+    .cultos,
+    .agenda,
+    .aniversariantes,
+    .localizacao,
+    .contato {
+        padding: 3rem 0;
+    }
+    .secao-titulo {
+        font-size: clamp(1.8rem, 8vw, 2.5rem);
+    }
+    .aniv-grid {
+        gap: 2rem;
+    }
+    .info-bar-grid {
+        grid-template-columns: 1fr;
+    }
+    .cultos-header,
+    .agenda-header,
+    .aniv-header {
+        margin-bottom: 2rem;
+    }
+    .evento-item {
+        padding: 1rem;
+    }
+    .aniv-evento-item,
+    .aniv-membro-item {
+        padding: 0.85rem 1rem;
+    }
+    .contato-form {
+        padding: 1.5rem 1rem;
+    }
+    .fechar-menu {
+        top: 1rem;
+        right: 1.25rem;
     }
 }
 
