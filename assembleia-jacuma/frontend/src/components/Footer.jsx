@@ -34,31 +34,7 @@ export default function Footer() {
                     {/* Marca */}
                     <div className="footer-brand">
                         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-                            <div
-                                style={{
-                                    width: "44px",
-                                    height: "44px",
-                                    background: "linear-gradient(135deg, #C9A84C, #E2C97E)",
-                                    borderRadius: "50%",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    fontFamily: "Cormorant Garamond, serif",
-                                    fontWeight: 700,
-                                    fontSize: "1rem",
-                                    color: "#0D1B2A",
-                                }}
-                            >
-                                AD
-                            </div>
-                            <div>
-                                <div style={{ fontFamily: "Cormorant Garamond, serif", fontSize: "1rem", color: "white", fontWeight: 600 }}>
-                                    Assembleia de Deus
-                                </div>
-                                <div style={{ fontSize: "0.7rem", color: "#C9A84C", letterSpacing: "0.12em", textTransform: "uppercase" }}>
-                                    Jacumã — Paraíba
-                                </div>
-                            </div>
+                            <img src="/logo.png" alt="Logo Assembleia de Deus" style={{ height: "52px", width: "auto" }} />
                         </div>
 
                         <p>
