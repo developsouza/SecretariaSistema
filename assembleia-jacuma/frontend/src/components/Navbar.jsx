@@ -69,7 +69,7 @@ export default function Navbar() {
             <nav className={`navbar ${navbarScrolled ? "scrolled" : ""}`}>
                 <div className="container navbar-inner">
                     <Link to="/" className="navbar-logo">
-                        <img src="/logo.png" alt="Logo Assembleia de Deus" style={{ height: "64px", width: "auto" }} />
+                        <img src="/logo.png" alt="Logo Assembleia de Deus" style={{ height: "120px", width: "auto" }} />
                     </Link>
 
                     <div className="navbar-links">
