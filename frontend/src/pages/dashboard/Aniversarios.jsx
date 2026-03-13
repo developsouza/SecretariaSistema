@@ -16,6 +16,7 @@ import {
     Users,
     FileText,
     MessageSquare,
+    Share2,
 } from "lucide-react";
 import { parseISO } from "date-fns";
 import CalendarioAniversariantes from "../../components/CalendarioAniversariantes";
@@ -811,6 +812,18 @@ export default function Aniversarios() {
                                 <MessageSquare className="w-3.5 h-3.5" />
                                 WhatsApp
                             </button>
+                            {usuario?.igreja?.slug && (
+                                <a
+                                    href={`/aniversarios/${usuario.igreja.slug}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg font-semibold border border-indigo-200 dark:border-indigo-700 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors"
+                                    title="Ver página pública de aniversários"
+                                >
+                                    <Share2 className="w-3.5 h-3.5" />
+                                    Pública
+                                </a>
+                            )}
                         </div>
                     </div>
                 </div>
