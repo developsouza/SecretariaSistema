@@ -27,6 +27,7 @@ router.get(
         query("situacao").optional().isIn(["ativo", "inativo", "transferido", "falecido", "disciplina", ""]),
         query("cargo").optional().trim(),
         query("congregacao_id").optional().trim(),
+        query("ordenar").optional().isIn(["nome", "numero_membro", "data_entrada_igreja", "data_nascimento", "created_at", ""]),
     ],
     (req, res, next) => {
         try {
@@ -38,6 +39,14 @@ router.get(
             const situacao = req.query.situacao || "";
             const cargo = req.query.cargo || "";
             const congregacaoId = req.query.congregacao_id || "";
+            const ORDENAR_MAPA = {
+                nome: "m.nome_completo",
+                numero_membro: "CAST(m.numero_membro AS INTEGER)",
+                data_entrada_igreja: "m.data_entrada_igreja",
+                data_nascimento: "m.data_nascimento",
+                created_at: "m.created_at",
+            };
+            const orderCol = ORDENAR_MAPA[req.query.ordenar] || "CAST(m.numero_membro AS INTEGER)";
 
             let where = "WHERE m.igreja_id = @igrejaId";
             const params = { igrejaId: req.igreja.id };
@@ -74,7 +83,7 @@ router.get(
       FROM membros m
       LEFT JOIN congregacoes c ON c.id = m.congregacao_id
       ${where}
-      ORDER BY m.nome_completo
+      ORDER BY ${orderCol} ASC
       LIMIT @limite OFFSET @offset
     `,
                 )

@@ -4,7 +4,7 @@ import { useAuth } from "../../../hooks/useAuth";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { membrosAPI, carteirasAPI, dashboardAPI } from "../../../services/api";
-import { Search, UserPlus, Filter, CreditCard, Eye, Pencil, Trash2, ChevronLeft, ChevronRight, User, Building2 } from "lucide-react";
+import { Search, UserPlus, Filter, CreditCard, Eye, Pencil, Trash2, ChevronLeft, ChevronRight, User, Building2, ArrowUpDown } from "lucide-react";
 import clsx from "clsx";
 import UpgradeModal from "../../../components/UpgradeModal";
 import { congregacoesAPI } from "../../../services/api";
@@ -29,9 +29,17 @@ export default function MembrosLista() {
     const [busca, setBusca] = useState("");
     const [situacao, setSituacao] = useState("");
     const [congregacaoId, setCongregacaoId] = useState("");
+    const [ordenar, setOrdenar] = useState("numero_membro");
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-    const params = { pagina, limite: 20, busca: busca || undefined, situacao: situacao || undefined, congregacao_id: congregacaoId || undefined };
+    const params = {
+        pagina,
+        limite: 20,
+        busca: busca || undefined,
+        situacao: situacao || undefined,
+        congregacao_id: congregacaoId || undefined,
+        ordenar,
+    };
 
     const { data: dataCongregacoes } = useQuery({
         queryKey: ["congregacoes"],
@@ -101,7 +109,7 @@ export default function MembrosLista() {
                     </button>
                 </div>
 
-                {/* Filtros */}
+                {/* Filtros — linha 1: busca + congregação */}
                 <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -128,6 +136,24 @@ export default function MembrosLista() {
                             </select>
                         </div>
                     )}
+                    {/* Ordenação */}
+                    <div className="relative">
+                        <ArrowUpDown className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+                        <select
+                            className="input pl-9 pr-8 min-w-[210px]"
+                            value={ordenar}
+                            onChange={(e) => {
+                                setOrdenar(e.target.value);
+                                setPagina(1);
+                            }}
+                        >
+                            <option value="numero_membro">Nº Rol (menor → maior)</option>
+                            <option value="nome">Nome (A → Z)</option>
+                            <option value="data_entrada_igreja">Data de entrada</option>
+                            <option value="data_nascimento">Data de nascimento</option>
+                            <option value="created_at">Mais recente</option>
+                        </select>
+                    </div>
                 </div>
                 <div className="flex gap-1.5 flex-wrap">
                     {SITUACOES.map((s) => (
