@@ -1090,6 +1090,12 @@ button {
     font-style: italic;
 }
 
+.agenda-rodape {
+    display: flex;
+    justify-content: center;
+    margin-top: 3rem;
+}
+
 /* =================== LOCALIZACAO =================== */
 .localizacao {
     padding: 7rem 0;

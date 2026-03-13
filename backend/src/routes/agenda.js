@@ -477,7 +477,7 @@ router.post("/pastoral/enviar-whatsapp", (req, res, next) => {
         const nomePastor = igreja.pastor_nome || "Pastor";
 
         if (eventos.length === 0) {
-            const mensagem = `${tituloMensagem}\n\n${titulo} ${nomePastor}, não há compromissos agendados para esse período.\n\n_${igreja.nome}_`;
+            const mensagem = `${tituloMensagem}\n\n${titulo} ${nomePastor}, não há compromissos agendados para esse período.\n\n_Gestão Secretaria | ${igreja.nome}_`;
             const numero = igreja.pastor_whatsapp.replace(/\D/g, "");
             return res.json({ url: `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`, total: 0 });
         }
@@ -494,7 +494,7 @@ router.post("/pastoral/enviar-whatsapp", (req, res, next) => {
             return `*${i + 1}. ${e.titulo}*\n${data} - ${horario}${linhaLocal}${linhaDesc}`;
         });
 
-        const mensagem = `${tituloMensagem}\n\n${titulo} ${nomePastor}, seguem seus compromissos:\n\n${linhas.join("\n\n")}\n\n_${igreja.nome}_`;
+        const mensagem = `${tituloMensagem}\n\n${titulo} ${nomePastor}, seguem seus compromissos:\n\n${linhas.join("\n\n")}\n\n_Gestão Secretaria | ${igreja.nome}_`;
         const numero = igreja.pastor_whatsapp.replace(/\D/g, "");
         const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
 

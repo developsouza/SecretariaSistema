@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { Clock, MapPin, Calendar } from "lucide-react";
+import { Clock, MapPin, Calendar, ExternalLink } from "lucide-react";
 
-const SLUG = "assembleia-jacuma";
+const SLUG = "assembleia-de-deus-em-jacum";
 const SAAS_API = import.meta.env.VITE_SAAS_API_URL || "/saas-api";
+const AGENDA_PUBLICA_URL = "https://secretariaigreja.g3tsistemas.com.br/agenda/assembleia-de-deus-em-jacum";
 
 const meses = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
@@ -89,6 +90,13 @@ export default function Agenda() {
                         ))}
                     </div>
                 )}
+
+                <div className="agenda-rodape">
+                    <a href={AGENDA_PUBLICA_URL} target="_blank" rel="noopener noreferrer" className="btn-primario">
+                        <span>Ver mais eventos e agendar evento</span>
+                        <ExternalLink size={16} />
+                    </a>
+                </div>
             </div>
         </section>
     );
