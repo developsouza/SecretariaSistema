@@ -1,3 +1,6 @@
+// Garante que Node.js use o fuso horário de Brasília em qualquer servidor
+process.env.TZ = "America/Sao_Paulo";
+
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");

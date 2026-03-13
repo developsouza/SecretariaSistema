@@ -958,40 +958,40 @@ function iniciarScheduler() {
         console.log("[Scheduler] Desabilitado em ambiente de desenvolvimento (NODE_ENV ≠ production).");
         return;
     }
-    cron.schedule("0 9 * * *", executarJobAniversariantes, {
-        timezone: "UTC",
+    cron.schedule("0 6 * * *", executarJobAniversariantes, {
+        timezone: "America/Sao_Paulo",
     });
     console.log("[Scheduler] Job de aniversariantes agendado para 06:00 (Brasília).");
 
-    cron.schedule("0 9 * * *", executarJobTrialExpirando, {
-        timezone: "UTC",
+    cron.schedule("0 6 * * *", executarJobTrialExpirando, {
+        timezone: "America/Sao_Paulo",
     });
     console.log("[Scheduler] Job de trial expirando agendado para 06:00 (Brasília).");
 
-    // Limpeza de contas não verificadas — diariamente às 03:00 BRT (06:00 UTC)
-    cron.schedule("0 6 * * *", executarJobLimpezaContasNaoVerificadas, {
-        timezone: "UTC",
+    // Limpeza de contas não verificadas — diariamente às 03:00 BRT
+    cron.schedule("0 3 * * *", executarJobLimpezaContasNaoVerificadas, {
+        timezone: "America/Sao_Paulo",
     });
     console.log("[Scheduler] Job de limpeza de contas não verificadas agendado para 03:00 (Brasília).");
 
-    // Agenda pastoral — lembrete diário do dia seguinte às 06:00 BRT (09:00 UTC)
-    cron.schedule("0 9 * * *", executarJobAgendaPastoralDiaAnterior, { timezone: "UTC" });
+    // Agenda pastoral — lembrete diário do dia seguinte às 06:00 BRT
+    cron.schedule("0 6 * * *", executarJobAgendaPastoralDiaAnterior, { timezone: "America/Sao_Paulo" });
     console.log("[Scheduler] Job de agenda pastoral (dia anterior) agendado para 06:00 (Brasília).");
 
-    // Agenda pastoral — resumo semanal toda segunda-feira às 06:00 BRT (09:00 UTC)
-    cron.schedule("0 9 * * 1", executarJobAgendaPastoralSemanal, { timezone: "UTC" });
+    // Agenda pastoral — resumo semanal toda segunda-feira às 06:00 BRT
+    cron.schedule("0 6 * * 1", executarJobAgendaPastoralSemanal, { timezone: "America/Sao_Paulo" });
     console.log("[Scheduler] Job de agenda pastoral (semanal) agendado para segundas-feiras 06:00 (Brasília).");
 
     // Aniversariantes — aviso com 2 dias de antecedência (diário às 06:00 BRT)
-    cron.schedule("0 9 * * *", executarJobAniversariantesDoisDias, { timezone: "UTC" });
+    cron.schedule("0 6 * * *", executarJobAniversariantesDoisDias, { timezone: "America/Sao_Paulo" });
     console.log("[Scheduler] Job de aniversariantes (2 dias) agendado para 06:00 (Brasília).");
 
     // Aniversariantes — resumo semanal toda segunda-feira às 06:00 BRT
-    cron.schedule("0 9 * * 1", executarJobAniversariantesSemana, { timezone: "UTC" });
+    cron.schedule("0 6 * * 1", executarJobAniversariantesSemana, { timezone: "America/Sao_Paulo" });
     console.log("[Scheduler] Job de aniversariantes (semanal) agendado para segundas-feiras 06:00 (Brasília).");
 
-    // Backup diário do banco às 02:00 BRT (05:00 UTC)
-    cron.schedule("0 5 * * *", executarJobBackupBanco, { timezone: "UTC" });
+    // Backup diário do banco às 02:00 BRT
+    cron.schedule("0 2 * * *", executarJobBackupBanco, { timezone: "America/Sao_Paulo" });
     console.log("[Scheduler] Job de backup do banco agendado para 02:00 (Brasília).");
 }
 

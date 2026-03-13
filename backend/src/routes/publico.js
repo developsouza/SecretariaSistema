@@ -464,7 +464,7 @@ router.get("/aniversarios/:slug", (req, res, next) => {
                 `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento, congregacao
                  FROM aniversarios_publicos
                  WHERE igreja_id = ? AND ativo = 1
-                   AND strftime('%m-%d', data_nascimento) = strftime('%m-%d', 'now')
+                   AND strftime('%m-%d', data_nascimento) = strftime('%m-%d', datetime('now','-3 hours'))
                  ORDER BY nome_completo`,
             )
             .all(igreja.id);
@@ -475,8 +475,8 @@ router.get("/aniversarios/:slug", (req, res, next) => {
                         strftime('%m-%d', data_nascimento) AS dia_mes
                  FROM aniversarios_publicos
                  WHERE igreja_id = ? AND ativo = 1
-                   AND strftime('%m-%d', data_nascimento) > strftime('%m-%d', 'now')
-                   AND strftime('%m-%d', data_nascimento) <= strftime('%m-%d', datetime('now', '+7 days'))
+                   AND strftime('%m-%d', data_nascimento) > strftime('%m-%d', datetime('now','-3 hours'))
+                   AND strftime('%m-%d', data_nascimento) <= strftime('%m-%d', datetime('now','-3 hours', '+7 days'))
                  ORDER BY strftime('%m-%d', data_nascimento)
                  LIMIT 10`,
             )
