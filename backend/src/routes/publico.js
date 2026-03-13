@@ -449,7 +449,7 @@ router.get("/aniversarios/:slug", (req, res, next) => {
 
         const aniversariantes = db
             .prepare(
-                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento,
+                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento, congregacao,
                         strftime('%d', data_nascimento) AS dia,
                         strftime('%m', data_nascimento) AS mes_nasc
                  FROM aniversarios_publicos
@@ -461,7 +461,7 @@ router.get("/aniversarios/:slug", (req, res, next) => {
 
         const hoje = db
             .prepare(
-                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento
+                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento, congregacao
                  FROM aniversarios_publicos
                  WHERE igreja_id = ? AND ativo = 1
                    AND strftime('%m-%d', data_nascimento) = strftime('%m-%d', 'now')
@@ -471,7 +471,7 @@ router.get("/aniversarios/:slug", (req, res, next) => {
 
         const proximos = db
             .prepare(
-                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento,
+                `SELECT id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento, congregacao,
                         strftime('%m-%d', data_nascimento) AS dia_mes
                  FROM aniversarios_publicos
                  WHERE igreja_id = ? AND ativo = 1
@@ -573,8 +573,8 @@ router.post(
             const id = require("crypto").randomBytes(16).toString("hex");
             db.prepare(
                 `INSERT INTO aniversarios_publicos
-                 (id, igreja_id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento, agenda_pastoral_id)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                 (id, igreja_id, nome_completo, data_nascimento, celular, whatsapp, email, cargo, departamento, congregacao, agenda_pastoral_id)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
             ).run(
                 id,
                 igreja.id,
@@ -585,6 +585,7 @@ router.post(
                 email || null,
                 cargo || null,
                 departamento || null,
+                req.body.congregacao?.trim() || null,
                 agendaPastoralId,
             );
 

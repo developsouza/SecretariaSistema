@@ -487,6 +487,8 @@ function initSchema() {
         // Agenda — pastor WhatsApp e email
         "ALTER TABLE igrejas ADD COLUMN pastor_whatsapp TEXT",
         "ALTER TABLE igrejas ADD COLUMN pastor_email TEXT",
+        // Aniversários Públicos — congregação
+        "ALTER TABLE aniversarios_publicos ADD COLUMN congregacao TEXT",
     ];
     for (const sql of novasColunas) {
         try {

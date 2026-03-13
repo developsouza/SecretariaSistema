@@ -2,6 +2,7 @@ import { useState, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { publicoAPI } from "../services/api";
+import { maskPhone } from "../utils/masks";
 import {
     Cake,
     Calendar,
@@ -229,10 +230,10 @@ function ModalCadastro({ slug, corPrimaria, nomeIgreja, onClose, onSucesso }) {
         nome_completo: "",
         data_nascimento: "",
         celular: "",
-        whatsapp: "",
         email: "",
         cargo: "",
         departamento: "",
+        congregacao: "",
     });
     const [sucesso, setSucesso] = useState(false);
     const [erroApi, setErroApi] = useState("");
@@ -252,7 +253,8 @@ function ModalCadastro({ slug, corPrimaria, nomeIgreja, onClose, onSucesso }) {
 
     function handleChange(e) {
         const { name, value } = e.target;
-        setForm((f) => ({ ...f, [name]: value }));
+        const parsed = name === "celular" ? maskPhone(value) : value;
+        setForm((f) => ({ ...f, [name]: parsed }));
         if (erroApi) setErroApi("");
     }
 
@@ -271,7 +273,7 @@ function ModalCadastro({ slug, corPrimaria, nomeIgreja, onClose, onSucesso }) {
             setErroApi("Selecione um cargo ou função.");
             return;
         }
-        mutation.mutate(form);
+        mutation.mutate({ ...form, whatsapp: form.celular });
     }
 
     const mostraDept = form.cargo === "Dirigente de Departamento" || form.cargo === "Outro";
@@ -394,30 +396,18 @@ function ModalCadastro({ slug, corPrimaria, nomeIgreja, onClose, onSucesso }) {
                         </div>
                     )}
 
-                    {/* Celular */}
-                    <div className="grid grid-cols-2 gap-3">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Celular</label>
-                            <input
-                                type="tel"
-                                name="celular"
-                                value={form.celular}
-                                onChange={handleChange}
-                                placeholder="(00) 00000-0000"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">WhatsApp</label>
-                            <input
-                                type="tel"
-                                name="whatsapp"
-                                value={form.whatsapp}
-                                onChange={handleChange}
-                                placeholder="(00) 00000-0000"
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                        </div>
+                    {/* Celular / WhatsApp */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Celular / WhatsApp</label>
+                        <input
+                            type="tel"
+                            name="celular"
+                            value={form.celular}
+                            onChange={handleChange}
+                            placeholder="(00) 00000-0000"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <p className="mt-1 text-xs text-gray-400">Informe o número do aniversariante</p>
                     </div>
 
                     {/* Email */}
@@ -429,6 +419,19 @@ function ModalCadastro({ slug, corPrimaria, nomeIgreja, onClose, onSucesso }) {
                             value={form.email}
                             onChange={handleChange}
                             placeholder="seu@email.com"
+                            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
+
+                    {/* Congregação */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Congregação</label>
+                        <input
+                            type="text"
+                            name="congregacao"
+                            value={form.congregacao}
+                            onChange={handleChange}
+                            placeholder="Nome da congregação"
                             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
                         />
                     </div>
