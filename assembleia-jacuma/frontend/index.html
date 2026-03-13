@@ -1,18 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pt-BR">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Assembleia de Deus em Jacumã - Uma comunidade de fé, amor e esperança no coração do litoral sul da Paraíba." />
-    <meta name="theme-color" content="#0D1B2A" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Nunito:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <title>Assembleia de Deus em Jacumã</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <!-- ═══════════════════════════════════════════════════════════
+         SEO BÁSICO
+    ════════════════════════════════════════════════════════════════ -->
+        <title>Assembleia de Deus em Jacumã | Igreja Evangélica — Conde/PB</title>
+        <meta
+            name="description"
+            content="Assembleia de Deus em Jacumã — Igreja evangélica em Conde/PB, litoral sul da Paraíba. Cultos, escola bíblica, jovens e congregações. Venha nos visitar!"
+        />
+        <meta
+            name="keywords"
+            content="AD Jacumã, AD Jacuma, AD Jacumã Conde, Assembleia de Deus Jacumã, Assembleia de Deus Jacuma, Assembleia de Deus em Jacumã, Assembleia de Deus em Jacuma, adjacuma, Igreja AD Jacumã, Igreja Evangélica Jacumã, Igreja Evangélica Conde PB, Assembleia de Deus Conde PB, Igreja Pentecostal Jacumã, Igreja Protestante Jacumã, Congregação Assembleia de Deus Litoral Sul Paraíba, Culto Evangélico Jacumã, Igreja Cristã Jacumã, Igreja Jacumã Conde, Litoral Sul Paraíba Igreja"
+        />
+        <meta name="author" content="Assembleia de Deus em Jacumã" />
+        <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+        <link rel="canonical" href="https://www.adjacuma.com.br/" />
+
+        <!-- ═══════════════════════════════════════════════════════════
+         GEO / LOCAL SEO
+    ════════════════════════════════════════════════════════════════ -->
+        <meta name="geo.region" content="BR-PB" />
+        <meta name="geo.placename" content="Jacumã, Conde, Paraíba, Brasil" />
+        <meta name="geo.position" content="-7.3505;-34.7943" />
+        <meta name="ICBM" content="-7.3505, -34.7943" />
+
+        <!-- ═══════════════════════════════════════════════════════════
+         OPEN GRAPH (Facebook, WhatsApp, LinkedIn)
+    ════════════════════════════════════════════════════════════════ -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://www.adjacuma.com.br/" />
+        <meta property="og:site_name" content="Assembleia de Deus em Jacumã" />
+        <meta property="og:title" content="Assembleia de Deus em Jacumã | Igreja Evangélica — Conde/PB" />
+        <meta
+            property="og:description"
+            content="Assembleia de Deus em Jacumã — Igreja evangélica em Conde/PB, litoral sul da Paraíba. Cultos, escola bíblica, jovens e congregações. Venha nos visitar!"
+        />
+        <meta property="og:image" content="https://www.adjacuma.com.br/culto.png" />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta property="og:image:alt" content="Culto na Assembleia de Deus em Jacumã" />
+        <meta property="og:locale" content="pt_BR" />
+
+        <!-- ═══════════════════════════════════════════════════════════
+         TWITTER CARD
+    ════════════════════════════════════════════════════════════════ -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Assembleia de Deus em Jacumã | Igreja Evangélica — Conde/PB" />
+        <meta
+            name="twitter:description"
+            content="Assembleia de Deus em Jacumã — Igreja evangélica em Conde/PB, litoral sul da Paraíba. Cultos, escola bíblica, jovens e congregações."
+        />
+        <meta name="twitter:image" content="https://www.adjacuma.com.br/culto.png" />
+        <meta name="twitter:image:alt" content="Culto na Assembleia de Deus em Jacumã" />
+
+        <!-- ═══════════════════════════════════════════════════════════
+         STRUCTURED DATA — JSON-LD (Google Rich Results)
+    ════════════════════════════════════════════════════════════════ -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "Church",
+                "name": "Assembleia de Deus em Jacumã",
+                "alternateName": ["AD Jacumã", "AD Jacuma", "Assembleia de Deus Jacumã", "Assembleia de Deus em Jacumã", "Adjacuma", "AD Adjacumã"],
+                "url": "https://www.adjacuma.com.br",
+                "logo": "https://www.adjacuma.com.br/logo.png",
+                "image": "https://www.adjacuma.com.br/culto.png",
+                "description": "Igreja evangélica pentecostal localizada em Jacumã, Conde/PB, no litoral sul da Paraíba. Fundada em 1993, oferece cultos, escola bíblica, ministério de jovens e ações sociais.",
+                "foundingDate": "1993",
+                "telephone": "+55-83-9-9334-6304",
+                "sameAs": ["https://wa.me/5583993346304"],
+                "address": {
+                    "@type": "PostalAddress",
+                    "streetAddress": "Rua Principal, s/n",
+                    "addressLocality": "Jacumã",
+                    "addressRegion": "PB",
+                    "addressCountry": "BR",
+                    "postalCode": "58337-000"
+                },
+                "geo": {
+                    "@type": "GeoCoordinates",
+                    "latitude": -7.3505,
+                    "longitude": -34.7943
+                },
+                "openingHoursSpecification": [
+                    {
+                        "@type": "OpeningHoursSpecification",
+                        "dayOfWeek": "Sunday",
+                        "opens": "09:00",
+                        "closes": "21:30",
+                        "description": "Escola Bíblica Dominical (09h) e Culto Evangelístico (19h)"
+                    },
+                    {
+                        "@type": "OpeningHoursSpecification",
+                        "dayOfWeek": "Wednesday",
+                        "opens": "19:00",
+                        "closes": "21:00",
+                        "description": "Culto da Família"
+                    },
+                    {
+                        "@type": "OpeningHoursSpecification",
+                        "dayOfWeek": "Friday",
+                        "opens": "19:00",
+                        "closes": "21:00",
+                        "description": "Culto de Ensinamento"
+                    }
+                ],
+                "areaServed": {
+                    "@type": "Place",
+                    "name": "Litoral Sul da Paraíba"
+                }
+            }
+        </script>
+
+        <!-- ═══════════════════════════════════════════════════════════
+         FAVICON & TEMA
+    ════════════════════════════════════════════════════════════════ -->
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" href="/logo.png" />
+        <meta name="theme-color" content="#0D1B2A" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,600&family=Nunito:wght@300;400;500;600;700&display=swap"
+            rel="stylesheet"
+        />
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="module" src="/src/main.jsx"></script>
+    </body>
 </html>
