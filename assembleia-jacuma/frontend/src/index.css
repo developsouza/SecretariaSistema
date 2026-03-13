@@ -407,6 +407,27 @@ button {
     transform: translateY(-1px);
 }
 
+.navbar-sistema-btn {
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 1.2rem;
+    background: transparent;
+    color: var(--dourado);
+    border: 1px solid var(--dourado);
+    border-radius: 2px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    white-space: nowrap;
+    transition: var(--transicao-rapida);
+}
+
+.navbar-sistema-btn:hover {
+    background: var(--dourado);
+    color: var(--azul-profundo);
+    transform: translateY(-1px);
+}
+
 .menu-mobile {
     display: none;
     flex-direction: column;

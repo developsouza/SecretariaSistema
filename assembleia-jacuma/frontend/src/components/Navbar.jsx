@@ -108,6 +108,15 @@ export default function Navbar() {
                         */}
                     </div>
 
+                    <a
+                        href="https://secretariaigreja.g3tsistemas.com.br/login"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="navbar-sistema-btn"
+                    >
+                        Acesso ao Sistema
+                    </a>
+
                     <button className="menu-mobile" onClick={() => setMenuAberto(true)} aria-label="Abrir menu">
                         <span />
                         <span />

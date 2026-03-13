@@ -34,7 +34,7 @@ export default function Footer() {
                     {/* Marca */}
                     <div className="footer-brand">
                         <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "1rem" }}>
-                            <img src="/logo.png" alt="Logo Assembleia de Deus" style={{ height: "52px", width: "auto" }} />
+                            <img src="/logo.png" alt="Logo Assembleia de Deus" style={{ height: "95px", width: "auto" }} />
                         </div>
 
                         <p>
