@@ -287,13 +287,16 @@ button {
     right: 0;
     z-index: 1000;
     transition: var(--transicao);
-    padding: 1.5rem 0;
+    height: 70px;
+    overflow: visible;
+    display: flex;
+    align-items: center;
 }
 
 .navbar.scrolled {
     background: rgba(13, 27, 42, 0.97);
     backdrop-filter: blur(20px);
-    padding: 1rem 0;
+    height: 70px;
     box-shadow: 0 2px 40px rgba(0, 0, 0, 0.3);
 }
 
@@ -302,6 +305,7 @@ button {
     align-items: center;
     justify-content: space-between;
     padding: 0;
+    width: 100%;
 }
 
 .navbar-logo {
