@@ -136,6 +136,16 @@ export default function Navbar() {
                     </a>
                 ))}
 
+                <a
+                    href="https://secretariaigreja.g3tsistemas.com.br/login"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mobile-sistema-btn"
+                    onClick={() => setMenuAberto(false)}
+                >
+                    Acesso ao Sistema
+                </a>
+
                 {/* Congregações no mobile — temporariamente desabilitado
                 <button className="mobile-menu-dropdown-trigger" onClick={() => setMobileCongsAberto((v) => !v)}>
                     Congregações

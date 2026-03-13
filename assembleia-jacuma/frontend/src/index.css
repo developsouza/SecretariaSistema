@@ -428,6 +428,26 @@ button {
     transform: translateY(-1px);
 }
 
+.mobile-sistema-btn {
+    display: block;
+    margin-top: 1rem;
+    padding: 0.75rem 1.2rem;
+    background: transparent;
+    color: var(--dourado);
+    border: 1px solid var(--dourado);
+    border-radius: 2px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-align: center;
+    transition: var(--transicao-rapida);
+}
+
+.mobile-sistema-btn:hover {
+    background: var(--dourado);
+    color: var(--azul-profundo);
+}
+
 .menu-mobile {
     display: none;
     flex-direction: column;
@@ -1359,6 +1379,11 @@ button {
     margin-bottom: 4rem;
 }
 
+.footer-logo {
+    height: 95px;
+    width: auto;
+}
+
 .footer-brand p {
     font-size: 0.88rem;
     line-height: 1.8;
@@ -1461,11 +1486,24 @@ button {
 
 @media (max-width: 768px) {
     .navbar-links,
-    .navbar-whatsapp {
+    .navbar-whatsapp,
+    .navbar-sistema-btn {
         display: none;
     }
     .menu-mobile {
         display: flex;
+    }
+    .navbar {
+        height: 64px;
+    }
+    .navbar.scrolled {
+        height: 64px;
+    }
+    .navbar-logo img {
+        height: 58px !important;
+    }
+    .footer-logo {
+        height: 65px;
     }
 
     .hero-stats {
